@@ -123,15 +123,14 @@
               </div>
             </div>
             <div class="convert-result" id="aud-upload-list"></div>
-            <div class="convert-actions">
-              <button class="btn btn-primary" id="aud-convert">変換</button>
-              <button class="btn" id="aud-clear">クリア</button>
-            </div>
-            <audio id="aud-preview" controls style="width:100%;"></audio>
-            <div class="convert-result" id="aud-result"></div>
-            <div class="convert-result" id="aud-download-wrap" style="display:none;">
-              <button class="btn" id="aud-download-all" type="button">一斉ダウンロード</button>
-            </div>
+          <div class="convert-actions">
+            <button class="btn btn-primary" id="aud-convert">変換</button>
+            <button class="btn" id="aud-clear">クリア</button>
+          </div>
+          <div class="convert-result" id="aud-result"></div>
+          <div class="convert-result" id="aud-download-wrap" style="display:none;">
+            <button class="btn" id="aud-download-all" type="button">一斉ダウンロード</button>
+          </div>
           </article>
         </section>
       </main>
@@ -156,7 +155,6 @@
         const audConvert = document.querySelector('#aud-convert');
         const audClear = document.querySelector('#aud-clear');
         const audResult = document.querySelector('#aud-result');
-        const audPreview = document.querySelector('#aud-preview');
         const audDownloadAll = document.querySelector('#aud-download-all');
         const audDownloadWrap = document.querySelector('#aud-download-wrap');
         const audUploadList = document.querySelector('#aud-upload-list');
@@ -166,14 +164,14 @@
 
         async function loadFfmpeg() {
           if (!window.FFmpeg) {
-            audResult.textContent = 'ffmpeg.wasm を読み込めませんでした（ネットワークを確認してください）。';
+            audResult.textContent = 'ffmpeg.wasm を読み込めませんでした（ネットワークが必要です）。簡易WAV変換にフォールバックします。';
             return false;
           }
           if (!createFFmpeg) {
             ({ createFFmpeg, fetchFile } = FFmpeg);
             ffmpeg = createFFmpeg({ log: false });
           }
-          if (ffmpegReady) return;
+          if (ffmpegReady) return true;
           audResult.textContent = 'ffmpeg.wasm を読み込み中...';
           await ffmpeg.load();
           ffmpegReady = true;
@@ -187,10 +185,6 @@
         imgClear?.addEventListener('click', () => clearInput(imgFile, imgResult));
 
         audFile?.addEventListener('change', () => {
-          if (audFile.files?.length && audPreview) {
-            audPreview.src = URL.createObjectURL(audFile.files[0]);
-            audPreview.load();
-          }
           renderUploadList();
         });
 
@@ -198,11 +192,6 @@
         audClear?.addEventListener('click', () => {
           clearInput(audFile, audResult);
           if (audUploadList) audUploadList.innerHTML = '';
-          if (audPreview) {
-            audPreview.pause();
-            audPreview.removeAttribute('src');
-            audPreview.load();
-          }
           if (audDownloadWrap) audDownloadWrap.style.display = 'none';
         });
         imgDownloadAll?.addEventListener('click', () => {
@@ -278,10 +267,41 @@
           audResult.textContent = '変換中...';
           audResultsBlobs = [];
           const ok = await loadFfmpeg();
-          if (!ok && ok !== undefined) return;
+          if (!ok && ok !== undefined) {
+            // fallback: WAVのみ
+            const results = [];
+            let firstPreviewSet = false;
+            for (const file of audFile.files) {
+              try {
+                const arrayBuffer = await file.arrayBuffer();
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const wavBlob = encodeWAV(audioBuffer);
+                const url = URL.createObjectURL(wavBlob);
+                audResultsBlobs.push({ url, name: `${baseName(file)}.wav` });
+                results.push(
+                  `<div style="display:grid;gap:6px;">
+                    <div><strong>${file.name}</strong> → WAV （簡易）</div>
+                    <a href="${url}" download="${baseName(file)}.wav">ダウンロード</a>
+                  </div>`
+                );
+                if (!firstPreviewSet && audPreview) {
+                  audPreview.src = url;
+                  audPreview.load();
+                  firstPreviewSet = true;
+                }
+              } catch (e) {
+                results.push(`<div>${file.name}: 変換に失敗しました。</div>`);
+              }
+            }
+            audResult.innerHTML = results.join('');
+            if (audResultsBlobs.length && audDownloadWrap) {
+              audDownloadWrap.style.display = 'block';
+            }
+            return;
+          }
           const fmt = audFmt?.value || 'wav';
           const results = [];
-          let firstPreviewSet = false;
 
           for (const file of audFile.files) {
             try {
@@ -308,14 +328,8 @@
                 `<div style="display:grid;gap:6px;">
                   <div><strong>${file.name}</strong> → ${fmt.toUpperCase()}</div>
                   <a href="${url}" download="${baseName(file)}.${fmt}">ダウンロード</a>
-                  <audio controls src="${url}" style="width:100%;"></audio>
                 </div>`
               );
-              if (!firstPreviewSet && audPreview) {
-                audPreview.src = url;
-                audPreview.load();
-                firstPreviewSet = true;
-              }
               ffmpeg.FS('unlink', nameIn);
               ffmpeg.FS('unlink', nameOut);
             } catch (e) {
@@ -350,6 +364,16 @@
             `;
           });
           audUploadList.innerHTML = items.join('');
+        }
+
+        function batchDownload(entries) {
+          if (!entries.length) return;
+          entries.forEach((item) => {
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = item.name;
+            a.click();
+          });
         }
 
         function batchDownload(entries) {
