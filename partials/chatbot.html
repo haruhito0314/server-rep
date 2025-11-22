@@ -1,0 +1,17 @@
+<button class="chat-button" id="chat-open" aria-label="チャットを開く">💬</button>
+
+<div class="chat-modal hide" id="chat-modal" role="dialog" aria-modal="true" aria-label="チャットボット">
+  <div class="chat-window glass-card">
+    <div class="section-title" style="margin:0;">Chatbot</div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-row">
+        <div class="bubble">AI: 準備中です。メッセージを送ってみてください。</div>
+      </div>
+    </div>
+    <form id="chat-form" class="chat-row">
+      <input class="input" id="chat-input" type="text" placeholder="メッセージを入力" required />
+      <button class="btn btn-primary" type="submit">送信</button>
+      <button class="btn" type="button" id="chat-close">閉じる</button>
+    </form>
+  </div>
+</div>

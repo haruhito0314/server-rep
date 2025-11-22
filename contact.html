@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>お問い合わせ | Mcommon Study</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <div class="page">
+      <main id="main-content" class="wrapper">
+        <h1 class="section-title">お問い合わせ</h1>
+        <form id="contact-form" class="form glass-card">
+          <input class="input" name="name" placeholder="名前（任意）" />
+          <input class="input" type="email" name="email" id="contact-email" placeholder="メールアドレス（必須）" required />
+          <textarea class="input" name="body" id="contact-body" placeholder="お問い合わせ内容（必須）" required></textarea>
+          <input class="input" type="file" name="attachment" />
+          <button class="btn btn-primary" id="contact-submit" type="submit" disabled>送信</button>
+          <p class="muted" id="contact-message"></p>
+        </form>
+      </main>
+    </div>
+    <div id="chatbot-slot"></div>
+    <div id="site-footer"></div>
+
+    <script src="/js/layout.js"></script>
+    <script src="/js/contact.js"></script>
+  </body>
+</html>
