@@ -5,27 +5,844 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>割り勘ツール | Mcommon Study</title>
     <link rel="stylesheet" href="/css/style.css" />
+
+    <style>
+      /* =========================
+         Layout
+      ========================= */
+      .split-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: calc(var(--header-height) + var(--space-lg))
+          var(--space-xl)
+          var(--space-xl);
+        display: grid;
+        gap: var(--space-lg);
+      }
+
+      .split-hero {
+        background: var(--card-glass);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        padding: var(--space-lg);
+        box-shadow: var(--shadow-window);
+        backdrop-filter: blur(var(--blur-amount));
+        -webkit-backdrop-filter: blur(var(--blur-amount));
+      }
+
+      .split-hero h1 {
+        margin: 6px 0 10px;
+        font-size: var(--fz-lg);
+      }
+
+      .split-hero p {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      .split-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-window);
+        padding: var(--space-lg);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .split-card h2,
+      .split-card h3 {
+        margin: 0 0 var(--space-xs);
+      }
+
+      .card-note {
+        margin: 0 0 var(--space-sm);
+        color: var(--text-muted);
+        font-size: var(--fz-sm);
+      }
+
+      .participants-list,
+      .payments-list {
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .participant-row input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border-soft);
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg-surface));
+        color: var(--text-main);
+        font-size: var(--fz-md);
+      }
+
+      /* =========================
+         支払いフォーム
+      ========================= */
+
+      .payment-row {
+        display: grid;
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        background: color-mix(
+          in srgb,
+          var(--card-bg) 95%,
+          var(--accent-soft)
+        );
+      }
+
+      .payment-form-row {
+        display: flex;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+      }
+
+      .payer-field,
+      .amount-field {
+        flex: 1 1 240px;
+      }
+
+      /* セレクト＋金額入力（macOS風） */
+      .payment-row select,
+      .payment-row input[type='number'] {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 1px solid
+          color-mix(in srgb, var(--border-soft) 85%, transparent);
+        background: linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--card-bg) 96%, #ffffff) 0%,
+          color-mix(in srgb, var(--card-bg) 90%, var(--bg-surface)) 100%
+        );
+        color: var(--text-main);
+        font-size: var(--fz-md);
+        min-height: 50px;
+        box-shadow: inset 0 1px 0
+          color-mix(in srgb, #ffffff 55%, transparent);
+      }
+
+      .payment-row select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 10px 6px;
+        padding-right: 40px;
+        /* ▼っぽい矢印 */
+        background-image: linear-gradient(
+          45deg,
+          transparent 0,
+          transparent 45%,
+          #9ca3af 45%,
+          #9ca3af 55%,
+          transparent 55%,
+          transparent 100%
+        );
+      }
+
+      .payment-row select:focus,
+      .payment-row input[type='number']:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      /* 対象者チェック（丸いピルボタン風） */
+      .payment-recipients {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        background: color-mix(
+          in srgb,
+          var(--card-bg) 96%,
+          var(--bg-surface)
+        );
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        padding: var(--space-sm);
+      }
+
+      .recipient-option {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: 8px 12px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-soft);
+        background: var(--card-bg);
+        color: var(--text-main);
+        cursor: pointer;
+        box-shadow: inset 0 1px 0
+          color-mix(in srgb, #ffffff 45%, transparent);
+      }
+
+      .recipient-option input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+        margin: 0;
+      }
+
+      .recipient-option span {
+        white-space: nowrap;
+        color: var(--text-muted);
+      }
+
+      .recipient-option:hover {
+        border-color: color-mix(
+          in srgb,
+          var(--border-soft) 70%,
+          var(--accent)
+        );
+      }
+
+      .recipient-option input[type='checkbox']:checked + span {
+        color: var(--text-main);
+        font-weight: 600;
+      }
+
+      .recipient-placeholder {
+        color: var(--text-muted);
+        font-size: var(--fz-sm);
+      }
+
+      /* =========================
+         支払い一覧 / ボタン
+      ========================= */
+
+      .payment-summary {
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .payment-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        padding: var(--space-sm) var(--space-md);
+        border: 1px solid
+          color-mix(in srgb, var(--border-soft) 80%, transparent);
+        border-radius: var(--radius-card);
+        background: color-mix(
+          in srgb,
+          var(--card-bg) 96%,
+          var(--bg-surface)
+        );
+      }
+
+      .payment-info {
+        display: grid;
+        gap: 2px;
+      }
+
+      .split-delete {
+        border: 1px solid
+          color-mix(in srgb, var(--accent) 60%, transparent);
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: var(--radius-pill);
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: var(--fz-sm);
+      }
+
+      .split-delete:hover {
+        background: color-mix(
+          in srgb,
+          var(--accent-soft) 70%,
+          transparent
+        );
+      }
+
+      .actions {
+        display: flex;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+      }
+
+      .error-message {
+        color: var(--danger);
+        min-height: 20px;
+      }
+
+      .results-card {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        padding: var(--space-sm);
+        background: color-mix(
+          in srgb,
+          var(--card-bg) 95%,
+          transparent
+        );
+      }
+
+      .results-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      @media (max-width: 700px) {
+        .split-page {
+          padding-inline: var(--space-md);
+        }
+
+        .payment-form-row {
+          flex-direction: column;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="site-header"></div>
+
     <div class="page">
-      <main id="main-content" class="wrapper">
-        <h1 class="section-title">割り勘ツール</h1>
-        <section class="glass-card" style="max-width: 520px;">
-          <p class="muted">合計金額と人数を入力すると1人あたりを計算します。</p>
-          <div class="form">
-            <input class="input" id="split-total" type="number" placeholder="合計金額" />
-            <input class="input" id="split-people" type="number" placeholder="人数" />
-            <button class="btn btn-primary" id="split-run">計算する</button>
-            <p class="muted" id="split-result"></p>
+      <main id="main-content" class="split-page">
+        <!-- 1. ヒーロー -->
+        <section class="split-hero">
+          <p
+            style="
+              text-transform: uppercase;
+              letter-spacing: 0.18em;
+              font-size: var(--fz-xs);
+              color: var(--text-muted);
+              margin-bottom: 6px;
+            "
+          >
+            Split Calculator
+          </p>
+          <h1
+            class="section-title"
+            style="margin: 0 0 var(--space-sm);"
+          >
+            割り勘計算ツール
+          </h1>
+          <p>
+            参加者を登録し、支払いを追加すると、自動で精算結果を計算します。
+          </p>
+        </section>
+
+        <!-- 2-1. 参加者 -->
+        <section class="split-card">
+          <h2>1. 参加者を登録</h2>
+          <p class="card-note">
+            最大10名まで。名前を入力すると支払いの選択肢にも反映されます。
+          </p>
+          <div class="participants-list" id="participantsList"></div>
+          <div class="actions">
+            <button class="btn" id="addParticipantBtn" type="button">
+              メンバーを追加
+            </button>
+          </div>
+        </section>
+
+        <!-- 2-2. 支払いを記録 -->
+        <section class="split-card">
+          <h2>2. 支払いを記録</h2>
+          <p class="card-note">
+            支払った人、金額、対象者を選んで「支払いを追加」または Enter
+            で登録できます。
+          </p>
+
+          <div class="payment-row" id="paymentForm">
+            <div class="payment-form-row">
+              <div class="payer-field">
+                <select id="payerSelect">
+                  <option value="">支払った人を選択</option>
+                </select>
+              </div>
+              <div class="amount-field">
+                <input
+                  id="paymentAmount"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="支払額 (円)"
+                />
+              </div>
+            </div>
+
+            <div class="payment-recipients" id="recipientContainer"></div>
+
+            <div class="actions">
+              <button
+                class="btn btn-primary"
+                id="addPaymentBtn"
+                type="button"
+              >
+                支払いを追加
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-top: var(--space-sm);">
+            <h3 style="margin: 0 0 var(--space-xs);">
+              追加済みの支払い一覧
+            </h3>
+            <div
+              id="paymentSummary"
+              class="payment-summary"
+            >
+              まだ支払いが登録されていません。
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 精算結果 -->
+        <section class="split-card">
+          <h2>3. 精算結果</h2>
+          <p class="card-note">Enter でも計算を実行できます。</p>
+          <div class="actions">
+            <button class="btn btn-primary" id="calcBtn" type="button">
+              精算結果を計算
+            </button>
+          </div>
+          <p id="splitError" class="error-message"></p>
+          <div class="results-card" id="resultsCard">
+            <ul class="results-list" id="resultsList"></ul>
+          </div>
+          <div class="actions" style="margin-top: var(--space-sm); gap: var(--space-sm); flex-wrap: wrap;">
+            <button class="btn" id="shareLineBtn" type="button">LINEで共有</button>
+            <button class="btn" id="shareLinkCopyBtn" type="button">リンクをコピー</button>
+          </div>
+          <div class="share-link" style="margin-top: var(--space-sm);">
+            <label class="form-label" for="shareLinkInput">シェア用リンク</label>
+            <div class="share-link-row" style="gap: var(--space-xs); display: flex; flex-wrap: wrap;">
+              <input id="shareLinkInput" class="input" type="text" readonly value="" style="flex:1; min-width: 260px;" />
+            </div>
           </div>
         </section>
       </main>
     </div>
+
     <div id="chatbot-slot"></div>
     <div id="site-footer"></div>
 
     <script src="/js/layout.js"></script>
-    <script src="/js/tool-split.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const participantsList =
+          document.querySelector('#participantsList');
+        const addParticipantBtn =
+          document.querySelector('#addParticipantBtn');
+        const payerSelect = document.querySelector('#payerSelect');
+        const paymentAmount =
+          document.querySelector('#paymentAmount');
+        const recipientContainer =
+          document.querySelector('#recipientContainer');
+        const addPaymentBtn =
+          document.querySelector('#addPaymentBtn');
+        const paymentSummary =
+          document.querySelector('#paymentSummary');
+        const calcBtn = document.querySelector('#calcBtn');
+        const resultsList =
+          document.querySelector('#resultsList');
+        const splitError = document.querySelector('#splitError');
+        const paymentForm =
+          document.querySelector('#paymentForm');
+        const shareLineBtn =
+          document.querySelector('#shareLineBtn');
+        const shareLinkCopyBtn =
+          document.querySelector('#shareLinkCopyBtn');
+        const shareLinkInput = document.querySelector('#shareLinkInput');
+
+        if (
+          !participantsList ||
+          !addParticipantBtn ||
+          !payerSelect ||
+          !paymentAmount ||
+          !recipientContainer ||
+          !addPaymentBtn ||
+          !paymentSummary ||
+          !calcBtn ||
+          !resultsList ||
+          !shareLineBtn ||
+          !shareLinkCopyBtn ||
+          !shareLinkInput
+        ) {
+          return;
+        }
+
+        const payments = [];
+        const MAX_PARTICIPANTS = 10;
+        let lastSettlements = [];
+
+        /* 参加者行を追加 */
+        function addParticipantRow(initialName = '') {
+          if (participantsList.children.length >= MAX_PARTICIPANTS)
+            return;
+
+          const row = document.createElement('div');
+          row.className = 'participant-row';
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder =
+            'メンバー' +
+            (participantsList.children.length + 1);
+          input.value = initialName;
+          input.dataset.participantInput = 'true';
+
+          input.addEventListener('input', refreshPaymentOptions);
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              refreshPaymentOptions();
+            }
+          });
+
+          row.appendChild(input);
+          participantsList.appendChild(row);
+        }
+
+        /* 現在の参加者名リスト */
+        function getParticipants() {
+          const inputs =
+            participantsList.querySelectorAll(
+              '[data-participant-input]'
+            );
+          const names = [];
+          inputs.forEach((input) => {
+            const name = input.value.trim();
+            if (name && !names.includes(name)) names.push(name);
+          });
+          return names;
+        }
+
+        /* 支払いフォームの候補を更新 */
+        function refreshPaymentOptions() {
+          const names = getParticipants();
+          const current = payerSelect.value;
+
+          payerSelect.innerHTML =
+            '<option value="">支払った人を選択</option>';
+          names.forEach((name) => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            payerSelect.appendChild(opt);
+          });
+          payerSelect.value = names.includes(current)
+            ? current
+            : '';
+
+          const prevInputs = Array.from(
+            recipientContainer.querySelectorAll(
+              '[data-recipient-checkbox]'
+            )
+          );
+          const prevNames = prevInputs.map((i) => i.value);
+          const prevChecked = prevInputs
+            .filter((input) => input.checked)
+            .map((input) => input.value);
+
+          recipientContainer.innerHTML = '';
+
+          if (!names.length) {
+            const span = document.createElement('span');
+            span.className = 'recipient-placeholder';
+            span.textContent = 'メンバーを入力してください';
+            recipientContainer.appendChild(span);
+            return;
+          }
+
+          names.forEach((name) => {
+            const label = document.createElement('label');
+            label.className = 'recipient-option';
+            label.innerHTML = `
+              <input type="checkbox" value="${name}" data-recipient-checkbox />
+              <span>${name}</span>
+            `;
+            const input = label.querySelector('input');
+            input.checked = prevChecked.length
+              ? prevChecked.includes(name) ||
+                !prevNames.includes(name)
+              : true;
+
+            label.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addPayment();
+              }
+            });
+
+            recipientContainer.appendChild(label);
+          });
+        }
+
+        /* 支払いデータを追加 */
+        function addPayment() {
+          splitError.textContent = '';
+
+          const payer = payerSelect.value;
+          const amount = Number(paymentAmount.value);
+          const recipients = Array.from(
+            recipientContainer.querySelectorAll(
+              '[data-recipient-checkbox]:checked'
+            )
+          ).map((input) => input.value);
+
+          if (!payer || !amount || !recipients.length) {
+            splitError.textContent =
+              '支払った人・金額・対象者を入力してください。';
+            return;
+          }
+
+          payments.push({ payer, amount, recipients });
+          renderPayments();
+
+          paymentAmount.value = '';
+          recipientContainer
+            .querySelectorAll('[data-recipient-checkbox]')
+            .forEach((c) => (c.checked = true));
+        }
+
+        /* 支払い一覧の描画 */
+        function renderPayments() {
+          if (!payments.length) {
+            paymentSummary.textContent =
+              'まだ支払いが登録されていません。';
+            return;
+          }
+
+          paymentSummary.innerHTML = '';
+          payments.forEach((p, idx) => {
+            const row = document.createElement('div');
+            row.className = 'payment-item';
+
+            const info = document.createElement('div');
+            info.className = 'payment-info';
+            info.innerHTML = `
+              <div><strong>${p.payer}</strong> が ${p.amount.toLocaleString()} 円</div>
+              <div class="muted">対象: ${p.recipients.join(' / ')}</div>
+            `;
+
+            const del = document.createElement('button');
+            del.className = 'split-delete';
+            del.textContent = '削除';
+            del.addEventListener('click', () => {
+              payments.splice(idx, 1);
+              renderPayments();
+            });
+
+            row.appendChild(info);
+            row.appendChild(del);
+            paymentSummary.appendChild(row);
+          });
+        }
+
+        /* 精算計算ロジック */
+        function calculate() {
+          splitError.textContent = '';
+
+          const names = getParticipants();
+          if (!names.length) {
+            splitError.textContent = '参加者を入力してください。';
+            return;
+          }
+          if (!payments.length) {
+            splitError.textContent =
+              '支払いを1件以上追加してください。';
+            return;
+          }
+
+          const ledger = {};
+          names.forEach((name) => {
+            ledger[name] = { paid: 0, owed: 0 };
+          });
+
+          payments.forEach((p) => {
+            const share = p.amount / p.recipients.length;
+
+            if (!ledger[p.payer]) {
+              ledger[p.payer] = { paid: 0, owed: 0 };
+            }
+            ledger[p.payer].paid += p.amount;
+
+            p.recipients.forEach((r) => {
+              if (!ledger[r]) {
+                ledger[r] = { paid: 0, owed: 0 };
+              }
+              ledger[r].owed += share;
+            });
+          });
+
+          resultsList.innerHTML = '';
+
+          const balances = Object.entries(ledger).map(
+            ([name, data]) => ({
+              name,
+              balance:
+                Math.round((data.paid - data.owed) * 100) / 100,
+            })
+          );
+
+          const payers = balances
+            .filter((b) => b.balance > 0)
+            .sort((a, b) => b.balance - a.balance);
+          const takers = balances
+            .filter((b) => b.balance < 0)
+            .sort((a, b) => a.balance - b.balance);
+
+          const settlements = [];
+          let i = 0;
+          let j = 0;
+
+          while (i < payers.length && j < takers.length) {
+            const pay = payers[i];
+            const take = takers[j];
+            const amount = Math.min(pay.balance, -take.balance);
+
+            settlements.push(
+              `${take.name} → ${pay.name} に ${Math.round(
+                amount
+              ).toLocaleString()} 円`
+            );
+
+            pay.balance -= amount;
+            take.balance += amount;
+
+            if (pay.balance <= 0.01) i++;
+            if (take.balance >= -0.01) j++;
+          }
+
+          lastSettlements = settlements;
+
+          if (!settlements.length) {
+            const li = document.createElement('li');
+            li.textContent = '精算は不要です。';
+            resultsList.appendChild(li);
+          } else {
+            settlements.forEach((s) => {
+              const li = document.createElement('li');
+              li.textContent = s;
+              resultsList.appendChild(li);
+            });
+          }
+        }
+
+        /* イベント登録 */
+        addParticipantBtn.addEventListener('click', () =>
+          addParticipantRow()
+        );
+        addPaymentBtn.addEventListener('click', addPayment);
+        calcBtn.addEventListener('click', calculate);
+
+        paymentForm.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addPayment();
+          }
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (
+            e.key === 'Enter' &&
+            e.target.closest('.split-page') &&
+            !e.target.closest('#paymentForm')
+          ) {
+            calculate();
+          }
+        });
+
+        shareLineBtn.addEventListener('click', () => {
+          calculate();
+          shareLine();
+        });
+
+        shareLinkCopyBtn.addEventListener('click', () => {
+          calculate();
+          copyLink();
+        });
+
+        function buildShareText() {
+          if (!lastSettlements.length) {
+            return '精算は不要です。';
+          }
+          return lastSettlements.join('\\n');
+        }
+
+        function generateShareLink() {
+          const data = {
+            participants: getParticipants(),
+            payments,
+            settlements: lastSettlements,
+          };
+          const encoded = btoa(
+            encodeURIComponent(JSON.stringify(data))
+          );
+          const link =
+            location.origin + location.pathname + '?data=' + encoded;
+          shareLinkInput.value = link;
+          return link;
+        }
+
+        function shareLine() {
+          const text = buildShareText();
+          const link = generateShareLink();
+          const message = text
+            ? `${text}\\n${link}`
+            : link;
+          const url =
+            'https://line.me/R/share?text=' +
+            encodeURIComponent(message);
+          window.open(url, '_blank');
+        }
+
+        function copyLink() {
+          const link = generateShareLink();
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(link).catch(() => {});
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = link;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+        }
+
+        function loadFromQuery() {
+          const params = new URLSearchParams(location.search);
+          const raw = params.get('data');
+          if (!raw) return;
+          try {
+            const parsed = JSON.parse(
+              decodeURIComponent(atob(raw))
+            );
+            participantsList.innerHTML = '';
+            (parsed.participants || []).forEach((name) =>
+              addParticipantRow(name)
+            );
+            refreshPaymentOptions();
+            payments.splice(
+              0,
+              payments.length,
+              ...(parsed.payments || [])
+            );
+            renderPayments();
+            lastSettlements = parsed.settlements || [];
+            calculate();
+          } catch (e) {
+            console.warn('decode failed', e);
+          }
+        }
+
+        /* 初期状態：3人分入力欄＋候補更新 */
+        addParticipantRow();
+        addParticipantRow();
+        addParticipantRow();
+        refreshPaymentOptions();
+        loadFromQuery();
+      });
+    </script>
   </body>
 </html>

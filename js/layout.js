@@ -47,7 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function initNav() {
     const path = location.pathname;
+    const nav = document.querySelector(".nav");
     const navLinks = document.querySelectorAll(".nav a");
+    const navToggle = document.querySelector("[data-nav-toggle]");
+    const search = document.querySelector(".nav-search");
+    const searchBtn = document.querySelector(".search-button");
+    const searchInput = search?.querySelector("input[type='search']");
+
     navLinks.forEach((link) => {
       const key = link.dataset.nav;
       if (
@@ -58,6 +64,25 @@ document.addEventListener("DOMContentLoaded", () => {
         link.classList.add("active");
       }
     });
+
+    navToggle?.addEventListener("click", () => {
+      nav?.classList.toggle("open");
+    });
+
+    navLinks.forEach((link) =>
+      link.addEventListener("click", () => {
+        nav?.classList.remove("open");
+      })
+    );
+
+    searchBtn?.addEventListener("click", () => {
+      search?.classList.add("open");
+      searchInput?.focus();
+    });
+
+    searchInput?.addEventListener("blur", () => {
+      setTimeout(() => search?.classList.remove("open"), 100);
+    });
   }
 
   function initAdmin() {
@@ -67,6 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isAdmin) {
       document.documentElement.classList.add("admin-mode");
       adminToggle?.removeAttribute("hidden");
+    } else {
+      adminToggle?.setAttribute("hidden", "");
     }
     adminToggle?.addEventListener("click", () => {
       localStorage.removeItem("mcommon_admin");

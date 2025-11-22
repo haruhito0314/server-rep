@@ -3,22 +3,124 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>メモツール | Mcommon Study</title>
+    <title>メモ | Mcommon Study</title>
     <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .memo-page {
+        width: min(1200px, 94%);
+        margin: 0 auto;
+        padding: calc(var(--header-height) + var(--space-lg)) 0 var(--space-xl);
+        display: grid;
+        gap: var(--space-lg);
+      }
+      .memo-hero {
+        background: var(--card-glass);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        padding: var(--space-lg);
+        box-shadow: var(--shadow-window);
+        backdrop-filter: blur(var(--blur-amount));
+      }
+      .memo-hero h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+      }
+      .memo-editor {
+        display: grid;
+        gap: var(--space-sm);
+        background: var(--card-bg);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-window);
+        padding: var(--space-lg);
+      }
+      .memo-editor textarea {
+        width: 100%;
+        min-height: 420px;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-soft);
+        background: color-mix(in srgb, var(--card-bg) 92%, var(--bg-surface));
+        color: var(--text-main);
+        font-size: var(--fz-md);
+        line-height: 1.6;
+        padding: var(--space-md);
+        resize: vertical;
+      }
+      .memo-editor textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .memo-actions {
+        display: flex;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .memo-actions .input {
+        flex: 1;
+        min-width: 200px;
+      }
+      .memo-grid {
+        display: grid;
+        gap: var(--space-sm);
+      }
+      .memo-card {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-card);
+        background: var(--card-bg);
+        box-shadow: var(--shadow-window);
+        padding: var(--space-md);
+        display: grid;
+        gap: var(--space-xs);
+      }
+      .memo-card p {
+        margin: 0;
+        white-space: pre-wrap;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .memo-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-sm);
+      }
+      @media (max-width: 900px) {
+        .memo-page {
+          padding-inline: var(--space-md);
+        }
+        .memo-editor textarea {
+          min-height: 320px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="site-header"></div>
     <div class="page">
-      <main id="main-content" class="wrapper">
-        <h1 class="section-title">メモツール</h1>
-        <section class="glass-card" style="max-width: 640px;">
-          <p class="muted">シンプルなメモを追加・削除できます（保存はブラウザのみ）。</p>
-          <div class="form">
-            <input class="input" id="memo-title" placeholder="タイトル" />
-            <textarea class="input" id="memo-body" placeholder="メモ内容"></textarea>
-            <button class="btn btn-primary" id="memo-add">メモを追加</button>
+      <main id="main-content" class="memo-page">
+        <section class="memo-hero">
+          <h1 class="section-title">メモ</h1>
+          <p class="muted" style="margin:0;">
+            内容だけを書いて保存できます（ブラウザに保存）。Macは Cmd+K / Cmd+Z、Windowsは Ctrl+K / Ctrl+Z でクリア・元に戻す。
+          </p>
+        </section>
+
+        <section class="memo-editor">
+          <textarea id="memo-body" placeholder="ここにメモを入力..." autofocus></textarea>
+          <div class="memo-actions">
+            <button class="btn btn-primary" id="memo-add">メモを保存</button>
+            <button class="btn" id="memo-clear">クリア</button>
+            <input class="input" id="memo-search" placeholder="検索" />
           </div>
-          <div id="memo-list" class="card-grid" style="margin-top: var(--space-md);"></div>
+        </section>
+
+        <section class="glass-card">
+          <h3 style="margin-top:0;">保存済みメモ</h3>
+          <div id="memo-list" class="memo-grid"></div>
         </section>
       </main>
     </div>
@@ -26,6 +128,112 @@
     <div id="site-footer"></div>
 
     <script src="/js/layout.js"></script>
-    <script src="/js/tool-memo.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const bodyEl = document.querySelector('#memo-body');
+        const addBtn = document.querySelector('#memo-add');
+        const clearBtn = document.querySelector('#memo-clear');
+        const listEl = document.querySelector('#memo-list');
+        const searchEl = document.querySelector('#memo-search');
+        if (!bodyEl || !addBtn || !listEl) return;
+
+        let memos = loadMemos();
+        let history = [];
+
+        addBtn.addEventListener('click', addMemo);
+        clearBtn?.addEventListener('click', clearInputs);
+        searchEl?.addEventListener('input', render);
+        document.addEventListener('keydown', (e) => {
+          const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+          const key = e.key.toLowerCase();
+          if ((isMac && e.metaKey && key === 'k') || (!isMac && e.ctrlKey && key === 'k')) {
+            e.preventDefault();
+            clearInputs();
+          }
+          if ((isMac && e.metaKey && key === 'z') || (!isMac && e.ctrlKey && key === 'z')) {
+            e.preventDefault();
+            undo();
+          }
+        });
+
+        function addMemo() {
+          const body = bodyEl.value.trim();
+          if (!body) return;
+          pushHistory();
+          memos.unshift({ id: Date.now(), body });
+          saveMemos();
+          clearInputs();
+          render();
+        }
+
+        function clearInputs() {
+          pushHistory();
+          bodyEl.value = '';
+          bodyEl.focus();
+        }
+
+        function pushHistory() {
+          history.push({
+            memos: JSON.parse(JSON.stringify(memos)),
+            draft: bodyEl.value
+          });
+          if (history.length > 30) history.shift();
+        }
+
+        function undo() {
+          const state = history.pop();
+          if (!state) return;
+          memos = state.memos || [];
+          bodyEl.value = state.draft || '';
+          saveMemos();
+          render();
+        }
+
+        function render() {
+          const query = (searchEl?.value || '').toLowerCase();
+          const filtered = memos.filter((m) =>
+            m.body.toLowerCase().includes(query)
+          );
+          listEl.innerHTML = filtered
+            .map(
+              (memo) => `
+              <article class="memo-card">
+                <div class="memo-meta">
+                  <span class="muted">${new Date(memo.id).toLocaleString()}</span>
+                  <button class="btn" data-delete="${memo.id}">削除</button>
+                </div>
+                <p>${memo.body.replace(/\\n/g, '<br>')}</p>
+              </article>
+            `
+            )
+            .join('');
+
+          listEl.querySelectorAll('[data-delete]').forEach((btn) =>
+            btn.addEventListener('click', () => {
+              const id = Number(btn.dataset.delete);
+              pushHistory();
+              memos = memos.filter((m) => m.id !== id);
+              saveMemos();
+              render();
+            })
+          );
+        }
+
+        function loadMemos() {
+          try {
+            const saved = localStorage.getItem('mcommon_memos');
+            return saved ? JSON.parse(saved) : [];
+          } catch {
+            return [];
+          }
+        }
+
+        function saveMemos() {
+          localStorage.setItem('mcommon_memos', JSON.stringify(memos));
+        }
+
+        render();
+      });
+    </script>
   </body>
 </html>

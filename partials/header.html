@@ -1,16 +1,24 @@
 <header class="site-header">
   <div class="header-inner">
-    <a class="logo" href="/index.html">
+    <a class="logo" href="/index.html" aria-label="Mcommon Study ホーム">
       <span class="logo-mark" aria-hidden="true"></span>
-      <span>Mcommon Study</span>
+      <span class="logo-text"></span>
     </a>
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" data-nav-toggle>☰</button>
     <nav class="nav" aria-label="Primary">
       <a href="/index.html" data-nav="home">ホーム</a>
       <a href="/news.html" data-nav="news">お知らせ</a>
       <a href="/tools.html" data-nav="tools">ツール</a>
       <a href="/subjects.html" data-nav="subjects">科目一覧</a>
       <a href="/bbs.html" data-nav="bbs">掲示板</a>
+      <a href="/contact.html" data-nav="contact">サポート</a>
     </nav>
+    <div class="nav-search" role="search">
+      <button type="button" class="search-button" aria-label="サイト内検索を開く">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+      </button>
+      <input type="search" name="site-search" placeholder="サイト内を検索" />
+    </div>
     <div class="header-actions">
       <div class="theme-toggle" aria-label="テーマ切り替え">
         <button class="toggle-btn" data-theme-btn="light">☀️</button>

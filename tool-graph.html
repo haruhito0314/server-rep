@@ -12,11 +12,15 @@
       <main id="main-content" class="wrapper">
         <h1 class="section-title">グラフツール</h1>
         <section class="glass-card" style="max-width: 720px;">
-          <p class="muted">カンマ区切りの数値を入力すると簡易棒グラフを描画します（デモ）。</p>
-          <div class="form">
+          <p class="muted">2D と 3D を切り替えながらデータを可視化（デモ）。</p>
+          <div class="tabs" aria-label="モード切替">
+            <button data-mode="2d" class="active">2D グラフ</button>
+            <button data-mode="3d">3D グラフ</button>
+          </div>
+          <div class="form" style="margin-top: var(--space-md);">
             <input class="input" id="graph-input" placeholder="例: 1,2,3,4,5" />
             <button class="btn btn-primary" id="graph-run" type="button">描画</button>
-            <div id="graph-bars" style="display:grid;gap:var(--space-sm);"></div>
+            <div id="graph-output" style="display:grid;gap:var(--space-sm);"></div>
           </div>
         </section>
       </main>
