@@ -1,4 +1,191 @@
-<div class="chat-button" id="chat-open" aria-label="チャットを開く"></div>
+<style>
+  /* Chatbot widget scoped styles */
+  .chat-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(10, 132, 255, 0.5);
+    background: linear-gradient(135deg, #0a84ff, #4aa4ff);
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 0 0 6px rgba(10, 132, 255, 0.15);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+    z-index: 40;
+  }
+  .chat-button:hover {
+    background: #1a8fff;
+    box-shadow: 0 22px 46px rgba(0, 0, 0, 0.3);
+  }
+  .chat-modal {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.38);
+    z-index: 35;
+    padding: 20px;
+  }
+  .chat-modal.hide {
+    display: none !important;
+  }
+  .chat-window {
+    max-width: 520px;
+    width: min(100%, 520px);
+    height: min(560px, 80vh);
+    max-height: 560px;
+    min-height: 420px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.86));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+    grid-template-rows: auto 1fr auto;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(10, 132, 255, 0.14);
+  }
+  .chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #0a84ff, #2f8dff);
+    border-radius: 14px;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(10, 132, 255, 0.22);
+  }
+  .chat-title-area {
+    display: grid;
+    gap: 2px;
+  }
+  .chat-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .chat-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .chat-header-close {
+    border: none;
+    background: transparent;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+  }
+  .chat-header-close:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .chat-messages {
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding-right: 2px;
+  }
+  .chat-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .chat-row.user {
+    justify-content: flex-end;
+  }
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    font-size: 14px;
+    line-height: 1.6;
+    background: rgba(255, 255, 255, 0.9);
+    max-width: 80%;
+  }
+  .bubble-ai {
+    background: rgba(248, 250, 252, 0.9);
+  }
+  .bubble-user {
+    background: linear-gradient(135deg, #0a84ff, #4aa4ff);
+    color: #fff;
+    border-color: rgba(10, 132, 255, 0.6);
+    box-shadow: 0 10px 22px rgba(10, 132, 255, 0.25);
+  }
+  .chat-input-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .chat-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(248, 250, 252, 0.9);
+    color: #0f172a;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  .chat-input:focus {
+    border-color: #0a84ff;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+  }
+  .chat-send {
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 132, 255, 0.6);
+    background: linear-gradient(135deg, #0a84ff, #4aa4ff);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 120ms ease, box-shadow 120ms ease, transform 80ms ease;
+    min-width: 84px;
+  }
+  .chat-send:hover:not(:disabled) {
+    background: #1a8fff;
+    box-shadow: 0 8px 22px rgba(10, 132, 255, 0.25);
+    transform: translateY(-1px);
+  }
+  .chat-send:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.2);
+  }
+  .chat-send:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  @media (min-width: 900px) {
+    .chat-modal {
+      background: transparent;
+      padding: 0;
+      justify-content: flex-end;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+    .chat-window {
+      margin: 20px;
+      pointer-events: auto;
+    }
+  }
+</style>
+
+<div class="chat-button" id="chat-open" aria-label="チャットを開く">
+  <span aria-hidden="true">💬</span>
+</div>
 
 <div class="chat-modal hide" id="chat-modal" aria-hidden="true">
   <div class="chat-window" role="dialog" aria-label="チャットウインドウ">

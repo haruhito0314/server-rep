@@ -1,3 +1,158 @@
+<style>
+  /* Header styles scoped to this partial */
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+    z-index: 50;
+    backdrop-filter: blur(14px);
+  }
+  .site-header .header-inner {
+    max-width: 1180px;
+    width: 100%;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #111827;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .logo-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: linear-gradient(150deg, #0a84ff, #4aa4ff);
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15), 0 10px 18px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+  }
+  .logo-text::after {
+    content: "Mcommon Study";
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 12px;
+    flex: 1;
+  }
+  .nav a {
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 14px;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  .nav a:hover {
+    background: rgba(10, 132, 255, 0.1);
+    color: #0a84ff;
+  }
+  .nav a.active {
+    background: rgba(10, 132, 255, 0.14);
+    color: #0a84ff;
+    font-weight: 600;
+  }
+  .nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  .nav-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-search input {
+    display: none;
+    height: 32px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .nav-search.open input {
+    display: inline-flex;
+  }
+  .search-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    cursor: pointer;
+  }
+  .header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .theme-toggle {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    padding: 2px;
+  }
+  .toggle-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .toggle-btn.active {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .btn-ghost {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  @media (max-width: 900px) {
+    .nav {
+      display: none;
+      position: absolute;
+      top: 70px;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      padding: 12px 24px;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+    .nav.open {
+      display: flex;
+    }
+    .nav-toggle {
+      display: inline-flex;
+    }
+  }
+</style>
+
 <header id="site-header" class="site-header">
   <div class="header-inner">
     <a class="logo" href="/index.html" aria-label="Mcommon Study ホーム">
