@@ -65,13 +65,31 @@ document.addEventListener("DOMContentLoaded", () => {
     goNext();
   });
 
-  // --- スライドクリックでリンクへ遷移 ---
-  slideElems.forEach((slide) => {
-    const link = slide.dataset.link;
+  // --- スライド全体をリンクとして扱う（クリック / Enter / Space） ---
+  const goToLink = (el) => {
+    const link = el?.dataset?.link;
     if (!link) return;
-    slide.addEventListener("click", () => {
-      window.location.href = link;
+    window.location.assign(link);
+  };
+
+  slideElems.forEach((slide) => {
+    if (slide.dataset.link) {
+      slide.setAttribute("role", "link");
+      slide.tabIndex = 0;
+    }
+
+    slide.addEventListener("click", (e) => {
+      const cta = e.target.closest(".slide-cta");
+      if (cta) {
+        e.preventDefault();
+        e.stopPropagation();
+        goToLink(slide);
+        return;
+      }
+      // スライド内のテキストクリックでも遷移
+      goToLink(slide);
     });
+
   });
 
   // スワイプ操作（スマホ）対応（おまけ）

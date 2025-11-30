@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>分子ビューア | Mcommon Study</title>
+
+    <!-- 共通スタイル -->
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- 3Dmol.js（分子3D表示用） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.4/3Dmol-min.js"></script>
+
+    <!-- Firebase（Firestore 用） -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+
+    <script>
+      // ★ もらった設定をそのまま使用
+      const firebaseConfig = {
+        apiKey: "AIzaSyDZ_F9ZxlRHTXjw1Hqy41QbY7XzhrpHvaY",
+        authDomain: "chem-4d6b6.firebaseapp.com",
+        projectId: "chem-4d6b6",
+        storageBucket: "chem-4d6b6.firebasestorage.app",
+        messagingSenderId: "214699230782",
+        appId: "1:214699230782:web:7ff881191c5c8f46ab336f",
+        measurementId: "G-8M9P64WWJ4",
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      const db = firebase.firestore();
+    </script>
+
+    <style>
+      /* ===== 分子ビューアページ専用スタイル ===== */
+
+      .chem-page {
+        padding-bottom: var(--space-xl);
+      }
+
+      .chem-hero {
+        max-width: 1180px;
+        margin: 0 auto var(--space-xl);
+        padding: var(--space-lg) var(--space-xl);
+        border-radius: calc(var(--radius-card) + 4px);
+        border: 1px solid var(--border-soft);
+        background: linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--card-bg) 94%, var(--accent-soft)),
+          var(--card-bg)
+        );
+        box-shadow: var(--shadow-window);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .chem-hero-title {
+        font-size: var(--fz-xl);
+        margin: 0;
+      }
+
+      .chem-hero-sub {
+        color: var(--text-muted);
+        max-width: 540px;
+      }
+
+      .chem-search-row {
+        margin-top: var(--space-md);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .chem-search-row input[type="text"] {
+        max-width: 360px;
+      }
+
+      .chem-layout {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        gap: var(--space-lg);
+      }
+
+      @media (max-width: 900px) {
+        .chem-hero {
+          padding: var(--space-lg);
+        }
+        .chem-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .chem-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-window);
+        padding: var(--space-lg);
+      }
+
+      .chem-meta-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: var(--space-md);
+      }
+
+      .chem-name-main {
+        font-size: var(--fz-lg);
+        font-weight: 600;
+      }
+
+      .chem-name-sub {
+        font-size: var(--fz-sm);
+        color: var(--text-muted);
+      }
+
+      .chem-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        font-size: var(--fz-xs);
+        color: var(--text-main);
+        background: var(--accent-soft);
+        border: 1px solid var(--border-soft);
+        gap: 4px;
+      }
+
+      .chem-props-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: var(--space-sm);
+        margin-top: var(--space-md);
+      }
+
+      .chem-prop-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border-soft);
+        background: color-mix(in srgb, var(--card-bg) 96%, var(--bg-surface));
+      }
+
+      .chem-prop-label {
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+      }
+
+      .chem-prop-value {
+        font-size: var(--fz-md);
+      }
+
+      .chem-section-title {
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        margin-bottom: var(--space-xs);
+      }
+
+      .chem-desc-block {
+        margin-top: var(--space-md);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .chem-desc-text {
+        font-size: var(--fz-sm);
+        color: var(--text-muted);
+        line-height: 1.8;
+      }
+
+      .chem-3d-wrapper {
+        height: 360px;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-soft);
+        background: radial-gradient(
+          circle at 20% 10%,
+          color-mix(in srgb, var(--accent-soft) 60%, transparent),
+          var(--card-bg)
+        );
+        overflow: hidden;
+        position: relative;
+      }
+
+      #mol-viewer {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chem-3d-caption {
+        margin-top: var(--space-sm);
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+      }
+
+      .chem-empty {
+        font-size: var(--fz-sm);
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 共通ヘッダー／フッター／チャットボットは partial から読み込み -->
+    <header id="site-header" class="site-header"></header>
+
+    <main class="page chem-page">
+      <!-- ヒーロー：検索フォーム -->
+      <section class="chem-hero">
+        <h1 class="chem-hero-title">分子ビューア</h1>
+        <p class="chem-hero-sub">
+          化合物名を入力すると、化学式・分子量・物性・3D構造・性質の概要を表示します。
+          日本語名や略称（EtOH など）にも対応する予定です。
+        </p>
+
+        <form id="chem-search-form" class="chem-search-row">
+          <input
+            type="text"
+            id="chem-query"
+            name="q"
+            class="form-input"
+            placeholder="例: ベンゼン, acetone, EtOH"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" class="btn btn-primary">
+            検索
+          </button>
+          <span id="chem-status" class="muted"></span>
+        </form>
+      </section>
+
+      <!-- 結果表示 -->
+      <section class="chem-layout">
+        <!-- 左：基本情報・物性・説明 -->
+        <article class="chem-card" id="chem-meta-card">
+          <div class="chem-empty">
+            検索すると、ここに化合物の情報が表示されます。
+          </div>
+        </article>
+
+        <!-- 右：3Dビューア -->
+        <article class="chem-card">
+          <div class="chem-section-title">3D 構造</div>
+          <div class="chem-3d-wrapper">
+            <div id="mol-viewer"></div>
+          </div>
+          <div class="chem-3d-caption">
+            ドラッグで回転、ホイールで拡大縮小できます。
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer id="site-footer" class="footer"></footer>
+
+    <!-- チャットボット -->
+    <div id="chatbot-slot"></div>
+
+    <!-- 共通スクリプト -->
+    <script src="/js/layout.js"></script>
+
+    <!-- 分子ビューア固有スクリプト -->
+    <script>
+      let viewer = null;
+      let chemCache = {};
+
+      const CACHE_KEY = "mcommon_chem_cache_v1";
+      const FS_COLLECTION = "chemCompounds"; // Firestore のコレクション名
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // localStorage キャッシュ読み込み
+        chemCache = loadCache();
+
+        // 3Dmol viewer 初期化
+        const element = document.getElementById("mol-viewer");
+        if (element && window.$3Dmol) {
+          viewer = $3Dmol.createViewer(element);
+          updateViewerThemeBackground(); // テーマに合わせて背景色セット
+        }
+
+        // テーマ変更を監視して 3D 背景も同期
+        observeThemeChange();
+
+        const form = document.getElementById("chem-search-form");
+        const statusEl = document.getElementById("chem-status");
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const q = document.getElementById("chem-query").value.trim();
+          if (!q) return;
+
+          const cacheKey = q.toLowerCase();
+
+          // 1. localStorage キャッシュ
+          if (chemCache[cacheKey]) {
+            const data = chemCache[cacheKey];
+            statusEl.textContent = "ローカルキャッシュから表示しています";
+            renderMetaCard(data);
+            renderMolecule(data.sdf);
+            return;
+          }
+
+          // 2. Firestore キャッシュ
+          statusEl.textContent = "クラウドキャッシュを確認中…";
+          const fsCached = await loadFromFirestore(cacheKey);
+          if (fsCached) {
+            statusEl.textContent = "クラウドキャッシュから表示しています";
+
+            // localStorage にも保存しておく
+            chemCache[cacheKey] = fsCached;
+            saveCache(chemCache);
+
+            renderMetaCard(fsCached);
+            renderMolecule(fsCached.sdf);
+            return;
+          }
+
+          // 3. どちらにも無ければ Lambda/API を叩く
+          statusEl.textContent = "検索中…";
+
+          try {
+            const ENDPOINT =
+              "https://foopdzcuhlmj52ztdejozbgg4m0ijrgj.lambda-url.ap-northeast-1.on.aws";
+
+            const res = await fetch(
+              `${ENDPOINT}?q=${encodeURIComponent(q)}`
+            );
+
+            if (!res.ok) {
+              throw new Error("API error: " + res.status);
+            }
+
+            const data = await res.json();
+            statusEl.textContent = "";
+
+            // localStorage に保存
+            chemCache[cacheKey] = data;
+            saveCache(chemCache);
+
+            // Firestore にも保存（失敗しても致命的ではないので catch はログだけ）
+            saveToFirestore(cacheKey, data).catch((e) =>
+              console.warn("saveToFirestore error", e)
+            );
+
+            renderMetaCard(data);
+            renderMolecule(data.sdf);
+          } catch (err) {
+            console.error(err);
+            statusEl.textContent =
+              "取得に失敗しました。名前や綴りを確認してください。";
+          }
+        });
+      });
+
+      /* ====== メタ情報カード描画 ====== */
+      function renderMetaCard(data) {
+        const card = document.getElementById("chem-meta-card");
+        if (!data) {
+          card.innerHTML =
+            '<div class="chem-empty">この名前の化合物情報は見つかりませんでした。</div>';
+          return;
+        }
+
+        const {
+          name_ja,
+          name_en,
+          formula,
+          molecular_weight,
+          properties = {},
+          description_ja,
+          shape_ja,
+          hazard_ja,
+        } = data;
+
+        const mp = properties.melting_point || "—";
+        const bp = properties.boiling_point || "—";
+        const dens = properties.density || "—";
+
+        // 日本向け表示（℃・g/cm³）に変換
+        const mpDisplay = mp !== "—" ? formatFahrenheitLine(mp) : "—";
+        const bpDisplay = bp !== "—" ? formatFahrenheitLine(bp) : "—";
+        const densDisplay = dens !== "—" ? formatDensityLine(dens) : "—";
+
+        card.innerHTML = `
+          <div class="chem-meta-header">
+            <div class="chem-name-main">${
+              name_ja || name_en || "不明な化合物"
+            }</div>
+            ${
+              name_en
+                ? `<div class="chem-name-sub">${name_en}</div>`
+                : ""
+            }
+            <div style="margin-top: var(--space-xs); display:flex; flex-wrap:wrap; gap:6px;">
+              ${
+                formula
+                  ? `<span class="chem-tag"><span>化学式</span><strong>${formula}</strong></span>`
+                  : ""
+              }
+              ${
+                molecular_weight
+                  ? `<span class="chem-tag"><span>分子量</span><strong>${molecular_weight}</strong></span>`
+                  : ""
+              }
+            </div>
+          </div>
+
+          <div>
+            <div class="chem-section-title">物性</div>
+            <div class="chem-props-grid">
+              <div class="chem-prop-item">
+                <div class="chem-prop-label">融点</div>
+                <div class="chem-prop-value">${mpDisplay}</div>
+              </div>
+              <div class="chem-prop-item">
+                <div class="chem-prop-label">沸点</div>
+                <div class="chem-prop-value">${bpDisplay}</div>
+              </div>
+              <div class="chem-prop-item">
+                <div class="chem-prop-label">密度</div>
+                <div class="chem-prop-value">${densDisplay}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chem-desc-block">
+            ${
+              description_ja
+                ? `
+              <div>
+                <div class="chem-section-title">概要</div>
+                <p class="chem-desc-text">${escapeHtml(description_ja)}</p>
+              </div>
+            `
+                : ""
+            }
+            ${
+              shape_ja
+                ? `
+              <div>
+                <div class="chem-section-title">構造・形状</div>
+                <p class="chem-desc-text">${escapeHtml(shape_ja)}</p>
+              </div>
+            `
+                : ""
+            }
+            ${
+              hazard_ja
+                ? `
+              <div>
+                <div class="chem-section-title">安全性・注意点</div>
+                <p class="chem-desc-text">${escapeHtml(hazard_ja)}</p>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+      }
+
+      /* ====== 3D表示（ボール＆スティック） ====== */
+      function renderMolecule(sdfText) {
+        if (!viewer) return;
+        viewer.clear();
+        if (!sdfText) {
+          viewer.render();
+          return;
+        }
+        viewer.addModel(sdfText, "sdf");
+
+        // 球＋棒のボール＆スティック表示
+        viewer.setStyle(
+          {},
+          {
+            stick: {
+              radius: 0.15,
+              colorscheme: "Jmol",
+            },
+            sphere: {
+              radius: 0.35,
+              colorscheme: "Jmol",
+            },
+          }
+        );
+
+        viewer.zoomTo();
+        viewer.render();
+      }
+
+      /* ====== テーマ連動で 3D 背景を切り替え ====== */
+
+      function getCurrentTheme() {
+        const theme = document.body.dataset.theme;
+        return theme === "light" ? "light" : "dark";
+      }
+
+      function updateViewerThemeBackground() {
+        if (!viewer) return;
+        const theme = getCurrentTheme();
+
+        if (theme === "light") {
+          viewer.setBackgroundColor("#ffffff");
+        } else {
+          // ダークテーマ用の少し青みのある黒
+          viewer.setBackgroundColor("#050816");
+        }
+        viewer.render();
+      }
+
+      function observeThemeChange() {
+        const observer = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            if (m.type === "attributes" && m.attributeName === "data-theme") {
+              updateViewerThemeBackground();
+            }
+          }
+        });
+
+        observer.observe(document.body, {
+          attributes: true,
+        });
+      }
+
+      /* ====== localStorage キャッシュ ====== */
+
+      function loadCache() {
+        try {
+          const raw = localStorage.getItem(CACHE_KEY);
+          if (!raw) return {};
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") return parsed;
+          return {};
+        } catch (e) {
+          console.warn("chem cache load error", e);
+          return {};
+        }
+      }
+
+      function saveCache(obj) {
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+        } catch (e) {
+          console.warn("chem cache save error", e);
+        }
+      }
+
+      /* ====== Firestore キャッシュ ====== */
+
+      async function loadFromFirestore(key) {
+        try {
+          const ref = db.collection(FS_COLLECTION).doc(key);
+          const snap = await ref.get();
+          if (!snap.exists) return null;
+          return snap.data();
+        } catch (e) {
+          console.warn("loadFromFirestore error", e);
+          return null;
+        }
+      }
+
+      async function saveToFirestore(key, data) {
+        try {
+          const ref = db.collection(FS_COLLECTION).doc(key);
+          await ref.set(
+            {
+              ...data,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.warn("saveToFirestore error", e);
+        }
+      }
+
+      /* ====== 文字列処理・単位変換 ====== */
+
+      function parseFirstNumber(str) {
+        if (!str) return null;
+        const m = String(str).match(/-?\d+(\.\d+)?/);
+        return m ? parseFloat(m[0]) : null;
+      }
+
+      // °F ベースの文字列を「約 xx.x ℃（元の表記）」に変換
+      function formatFahrenheitLine(str) {
+        const f = parseFirstNumber(str);
+        if (f == null || Number.isNaN(f)) return str;
+
+        const c = ((f - 32) * 5) / 9;
+        const cRounded = Math.round(c * 10) / 10;
+
+        return `約 ${cRounded} ℃（${str}）`;
+      }
+
+      // 密度を「x.xxx g/cm³（元のテキスト）」の形にする
+      function formatDensityLine(str) {
+        const rho = parseFirstNumber(str);
+        if (rho == null || Number.isNaN(rho)) return str;
+
+        return `${rho} g/cm³（${str}）`;
+      }
+
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    </script>
+  </body>
+</html>

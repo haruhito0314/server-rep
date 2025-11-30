@@ -14,6 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     form.reset();
     submit.disabled = true;
-    if (message) message.textContent = "お問い合わせありがとうございました（ダミー）";
+    if (message) message.textContent = "お問い合わせありがとうございました";
   });
 });

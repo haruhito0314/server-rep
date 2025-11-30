@@ -5,26 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>お問い合わせ | Mcommon Study</title>
     <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* macOS風お問い合わせカード */
+      .contact-page {
+        width: min(900px, 94%);
+        margin: 0 auto var(--space-xl);
+        padding-top: calc(var(--header-height) + var(--space-lg));
+        display: grid;
+        gap: var(--space-lg);
+      }
+      .contact-hero {
+        background: var(--card-glass);
+        border: 1px solid var(--border-soft);
+        border-radius: 20px;
+        padding: 24px 26px;
+        box-shadow: var(--shadow-window);
+        backdrop-filter: blur(var(--blur-amount));
+      }
+      .contact-form-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-soft);
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: var(--shadow-window);
+        display: grid;
+        gap: var(--space-md);
+      }
+      .contact-form {
+        display: grid;
+        gap: var(--space-md);
+      }
+      .contact-form-item {
+        display: grid;
+        gap: 6px;
+      }
+      .contact-form-item--short input {
+        max-width: 420px;
+      }
+      .contact-form label {
+        font-size: var(--fz-sm);
+        color: var(--text-muted);
+      }
+      .contact-form input,
+      .contact-form textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border-soft);
+        background: color-mix(in srgb, var(--card-bg) 92%, #fff);
+        color: var(--text-main);
+        font-size: var(--fz-md);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+      }
+      .contact-form textarea {
+        min-height: 160px;
+        resize: vertical;
+      }
+      .contact-form input:focus,
+      .contact-form textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+        background: color-mix(in srgb, var(--card-bg) 95%, var(--accent-soft));
+      }
+      .contact-submit {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: var(--radius-pill);
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-size: var(--fz-md);
+        cursor: pointer;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+        transition: background-color 150ms ease, box-shadow 150ms ease;
+      }
+      .contact-submit:hover {
+        background: color-mix(in srgb, var(--accent) 94%, #ffffff 6%);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+      }
+      .contact-status {
+        margin: 12px 0 0;
+        font-size: 0.95rem;
+        color: #475569;
+      }
+    </style>
   </head>
   <body>
     <div id="site-header"></div>
-    <div class="page">
-      <main id="main-content" class="wrapper">
-        <h1 class="section-title">お問い合わせ</h1>
-        <form id="contact-form" class="form glass-card">
-          <input class="input" name="name" placeholder="名前（任意）" />
-          <input class="input" type="email" name="email" id="contact-email" placeholder="メールアドレス（必須）" required />
-          <textarea class="input" name="body" id="contact-body" placeholder="お問い合わせ内容（必須）" required></textarea>
-          <input class="input" type="file" name="attachment" />
-          <button class="btn btn-primary" id="contact-submit" type="submit" disabled>送信</button>
-          <p class="muted" id="contact-message"></p>
+    <main id="main-content" class="contact-page">
+      <section class="contact-hero glass-card">
+        <h1 class="section-title" style="margin-top:0;">お問い合わせ</h1>
+        <p class="muted">ご意見・ご要望・不具合などお気軽にお送りください。</p>
+      </section>
+
+      <section class="contact-form-card">
+        <h2>お問い合わせフォーム</h2>
+        <form class="contact-form" id="contact-form">
+          <div class="contact-form-item contact-form-item--short">
+            <label for="contact-name">名前</label>
+            <input type="text" id="contact-name" name="user_name" placeholder="例: 山田 太郎" required />
+          </div>
+          <div class="contact-form-item">
+            <label for="contact-email">メールアドレス</label>
+            <input type="email" id="contact-email" name="user_email" placeholder="your@email.com" required />
+          </div>
+          <div class="contact-form-item">
+            <label for="contact-message">お問い合わせ内容</label>
+            <textarea id="contact-message" name="message" placeholder="できるだけ具体的にご記入ください…" required></textarea>
+          </div>
+          <button class="contact-submit" type="submit" id="contact-submit">
+            <span aria-hidden="true">✉️</span> 送信する
+          </button>
+          <p id="contact-status" class="contact-status"></p>
         </form>
-      </main>
-    </div>
+      </section>
+    </main>
     <div id="chatbot-slot"></div>
     <div id="site-footer"></div>
 
     <script src="/js/layout.js"></script>
-    <script src="/js/contact.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+      (() => {
+        const PUBLIC_KEY = "r9-1lR6c7p5Wx4yDl";
+        const SERVICE_ID = "service_mcommon2025";
+        const TEMPLATE_ID = "template_mygzl5a";
+        const form = document.getElementById("contact-form");
+        const status = document.getElementById("contact-status");
+        const submit = document.getElementById("contact-submit");
+        const currentTimeField = document.createElement("input");
+        currentTimeField.type = "hidden";
+        currentTimeField.name = "time";
+
+        if (!form || !status || !submit) return;
+        form.appendChild(currentTimeField);
+        emailjs.init(PUBLIC_KEY);
+
+        const updateDisabled = () => {
+          const name = document.getElementById("contact-name")?.value.trim();
+          const email = document.getElementById("contact-email")?.value.trim();
+          const message = document.getElementById("contact-message")?.value.trim();
+          submit.disabled = !(email && message && name);
+        };
+        form.addEventListener("input", updateDisabled);
+        updateDisabled();
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          status.textContent = "送信中です...";
+          status.style.color = "#475569";
+          submit.disabled = true;
+
+          currentTimeField.value = new Date().toLocaleString("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+
+          emailjs
+            .sendForm(SERVICE_ID, TEMPLATE_ID, form)
+            .then(() => {
+              status.textContent = "送信しました。ご連絡ありがとうございます。";
+              status.style.color = "#16a34a";
+              form.reset();
+              updateDisabled();
+            })
+            .catch((error) => {
+              console.error("EmailJS error:", error);
+              status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
+              status.style.color = "#dc2626";
+              submit.disabled = false;
+            });
+        });
+      })();
+    </script>
   </body>
 </html>

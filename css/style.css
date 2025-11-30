@@ -79,6 +79,31 @@ main {
   padding-top: calc(var(--header-height) + var(--space-lg));
 }
 
+.page > main {
+  display: grid;
+  gap: var(--space-xl);
+  padding-bottom: var(--space-xl);
+}
+
+.board-page {
+  width: min(1200px, 94%);
+  margin: 0 auto var(--space-xl);
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* =========================
    Header (Apple風)
 ========================= */
@@ -98,6 +123,48 @@ main {
   -webkit-backdrop-filter: blur(var(--blur-amount));
   z-index: 30;
 }
+
+/* =========================
+   Mega Menu Backdrop (Apple風のモヤッ)
+========================= */
+
+.mega-backdrop {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* 上は薄く、下に行くほど白く＆少し暗くなるグラデーション */
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 245, 247, 0.00) 0%,
+    rgba(245, 245, 247, 0.35) 20%,
+    rgba(245, 245, 247, 0.65) 55%,
+    rgba(15, 23, 42, 0.75) 100%
+  );
+
+  /* 背景をしっかりぼかす */
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+
+  z-index: 24;            /* ヘッダー(30) > メガメニュー(25) > これ(24) > 本文(0) */
+  opacity: 0;
+  pointer-events: none;   /* 非表示中はクリック通す */
+  transition: opacity 200ms ease;
+}
+
+/* 表示状態 */
+.mega-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;   /* 開いてる間は背景クリック不可にする */
+}
+
+/* メガメニュー開いてる間はスクロール止める（Apple感UP） */
+html.mega-open body {
+  overflow: hidden;
+}
+
 
 /* header-inner を 1 行 flex に */
 .site-header .header-inner {
@@ -192,6 +259,88 @@ main {
 
 .nav a.active {
   color: var(--text-main);
+}
+
+/* メガメニュー */
+.mega-menu {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  z-index: 25;
+  transform: translateY(-16px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 220ms ease, visibility 220ms;
+}
+
+.mega-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mega-inner {
+  width: min(960px, 94%);
+  margin: 0 auto;
+  padding: var(--space-md);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-sm);
+  align-items: start;
+}
+
+#mega-subjects .mega-inner {
+  width: min(820px, 94%);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.mega-column {
+  display: grid;
+  gap: 4px;
+}
+
+.mega-column:not(:first-child) {
+  gap: 2px;
+}
+
+.mega-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.mega-column a {
+  color: var(--text-main);
+  text-decoration: none;
+  padding: 1px 0;
+  line-height: 1.35;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.mega-column a:hover {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.mega-inner .mega-column:first-child a {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mega-inner .mega-column:first-child a + a {
+  margin-top: 4px;
 }
 
 /* アクティブ項目の下に細いライン */
@@ -339,13 +488,36 @@ main {
   margin: 0 auto;
 }
 
+.hero {
+  display: grid;
+  gap: var(--space-md);
+  align-items: center;
+  min-height: 240px;
+}
+
+.hero h1 {
+  font-size: 32px;
+  margin-bottom: var(--space-xs);
+}
+
+.hero .hero-actions {
+  display: inline-flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-sm);
+}
+
+.page > main > .wrapper {
+  margin-top: 0;
+}
+
 .glass-card,
 .card {
   background: var(--card-bg);
   border-radius: var(--radius-card);
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-window);
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
@@ -385,6 +557,12 @@ h4 {
 .section-title {
   font-size: var(--fz-xl);
   margin-bottom: var(--space-sm);
+}
+
+.section-heading {
+  display: grid;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
 }
 
 /* =========================
@@ -441,6 +619,10 @@ h4 {
   background: color-mix(in srgb, var(--danger) 18%, transparent);
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 40%, var(--border-soft));
+}
+
+.hidden {
+  display: none !important;
 }
 
 /* =========================
@@ -504,6 +686,75 @@ textarea {
   display: grid;
   gap: var(--space-lg);
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.news-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--card-bg) 96%, var(--bg-surface));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.news-row:focus,
+.news-row:focus-visible,
+.news-row:hover {
+  text-decoration: none;
+}
+
+.news-row:hover {
+  background: color-mix(in srgb, var(--card-bg) 90%, var(--accent-soft));
+  border-color: color-mix(in srgb, var(--border-soft) 70%, var(--accent));
+}
+
+.news-row-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.news-row-link {
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.news-row:hover .news-row-link,
+.news-row:focus .news-row-link {
+  text-decoration: none;
+}
+
+.news-row-body {
+  margin: var(--space-xs) 0 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.news-row-meta {
+  display: grid;
+  gap: var(--space-xs);
+  align-items: center;
+  justify-items: end;
+  min-width: 120px;
+}
+
+/* BBS 横並びカード */
+#bbs-list {
+  display: grid;
+  gap: var(--space-lg);
 }
 
 .tabs {
@@ -652,85 +903,6 @@ footer {
   }
 }
 
-
-/* =========================
-   Chatbot
-========================= */
-
-.chat-button {
-  position: fixed;
-  bottom: var(--space-xl);
-  right: var(--space-xl);
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  transition: background-color 150ms ease, box-shadow 150ms ease;
-  z-index: 40;
-}
-
-.chat-button:hover {
-  background: color-mix(in srgb, var(--accent) 92%, #ffffff 8%);
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.3);
-}
-
-.chat-modal {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 35;
-  padding: var(--space-lg);
-}
-
-.hide {
-  display: none !important;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-.chat-window {
-  max-width: 480px;
-  width: min(100%, 480px);
-  background: var(--card-glass);
-  backdrop-filter: blur(var(--blur-amount));
-  -webkit-backdrop-filter: blur(var(--blur-amount));
-  padding: var(--space-lg);
-  display: grid;
-  gap: var(--space-md);
-  grid-template-rows: auto 1fr auto;
-}
-
-.chat-messages {
-  overflow-y: auto;
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.chat-row {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: flex-start;
-}
-
-.chat-row.user {
-  justify-content: flex-end;
-}
-
-.bubble {
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--card-bg) 80%, var(--accent-soft));
-  border: 1px solid var(--border-soft);
-}
-
 /* =========================
    Responsive
 ========================= */
@@ -811,4 +983,350 @@ footer {
   }
 }
 
+/* =========================
+   Home Slider (Apple風)
+========================= */
 
+/* 外側カード */
+.slider {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-xl);
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* 中のトラック・スライド */
+.slide-track {
+  overflow: hidden;
+  border-radius: calc(var(--radius-card) + 4px);
+}
+
+.slides {
+  display: flex;
+  transition: transform 600ms ease;
+}
+
+/* 1枚のスライド：左テキスト / 右ビジュアル */
+.slide {
+  min-width: 100%;
+  padding: var(--space-xl);
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr);
+  gap: var(--space-xl);
+  align-items: center;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-bg) 92%, var(--accent-soft)),
+    color-mix(in srgb, var(--bg-surface) 90%, #0b1020)
+  );
+}
+
+/* 左側テキスト */
+.slide-text {
+  display: grid;
+  gap: 6px;
+}
+
+.slide-eyebrow {
+  font-size: var(--fz-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.slide-title {
+  font-size: 26px;
+  margin: 0;
+}
+
+.slide-desc {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 460px;
+}
+
+.slide-cta {
+  margin-top: var(--space-sm);
+}
+
+/* 右側ビジュアル（丸→カードアート） */
+.slide-visual {
+  justify-self: end;
+  position: relative;
+  width: 200px;
+  height: 180px;
+  display: grid;
+  place-items: center;
+}
+
+.slide-art {
+  width: 170px;
+  height: 150px;
+  border-radius: 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(160deg, #f8fbff, color-mix(in srgb, var(--accent) 25%, #ffffff));
+}
+
+.slide-art::before,
+.slide-art::after {
+  content: "";
+  position: absolute;
+}
+
+/* 3D: グラフカード＋影 */
+.art-graph3d {
+  position: relative;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 35%),
+    linear-gradient(145deg, #0f172a, #0a84ff);
+  border-radius: 32px;
+}
+
+/* 中のミニグラフ */
+.art-graph3d::before {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 80px;
+  top: 24px;
+  left: 24px;
+  border-radius: 18px;
+
+  background:
+    /* 折れ線（メイン） */
+    linear-gradient(140deg,
+      transparent 0 35%,
+      rgba(96,165,250,0.0) 35%,
+      rgba(96,165,250,0.95) 48%,
+      rgba(56,189,248,0.0) 63%,
+      transparent 63% 100%
+    ),
+
+    /* x軸・y軸 */
+    linear-gradient(to right, rgba(148,163,184,0.5), transparent) 16px 70px / 88px 1px no-repeat,
+    linear-gradient(to top,   rgba(148,163,184,0.5), transparent) 20px 14px / 1px 60px no-repeat,
+
+    /* 棒グラフ（薄めに2本だけ） */
+    linear-gradient(to top, rgba(96,165,250,0.4) 0 75%, transparent 75%) 36% 100% / 9px 60px no-repeat,
+    linear-gradient(to top, rgba(56,189,248,0.25) 0 55%, transparent 55%) 62% 100% / 9px 46px no-repeat,
+
+    /* グリッド（かなり薄め） */
+    linear-gradient(to right, rgba(148,163,184,0.12) 1px, transparent 1px) 0 0 / 18px 100% repeat-x,
+    linear-gradient(to top,  rgba(148,163,184,0.12) 1px, transparent 1px) 0 100% / 100% 18px repeat-y,
+
+    /* パネルベース */
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,0.32), transparent 55%),
+    linear-gradient(145deg, #020617, #0b1220);
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.12) inset,
+    16px 16px 28px rgba(0,0,0,0.32);
+}
+
+
+/* 影（床に落ちてるっぽいやつ）は今まで通り */
+.art-graph3d::after {
+  content: "";
+  position: absolute;
+  width: 130px;
+  height: 16px;
+  bottom: 20px;
+  left: 12px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  filter: blur(18px);
+}
+
+
+/* Memo: ノート紙＋薄い行 */
+.art-memo {
+  background: linear-gradient(160deg, #f5f7ff, #d5e4ff);
+}
+.art-memo::before {
+  inset: 10px;
+  border-radius: 14px;
+  background:
+    linear-gradient(#c5d6ff 3px, transparent 3px),
+    linear-gradient(#ffffff 100%, #ffffff);
+  background-size: 100% 10px, cover;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+}
+.art-memo::after {
+  width: 18px;
+  height: 100%;
+  left: 18px;
+  top: 10px;
+  background: rgba(255, 180, 180, 0.65);
+  opacity: 0.8;
+}
+
+/* BBS: 吹き出し＋小さな点 */
+.art-bbs {
+  background: linear-gradient(145deg, #0a84ff, #7f9cff);
+}
+.art-bbs::before {
+  width: 120px;
+  height: 80px;
+  top: 18px;
+  left: 16px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle 4px at 24px 32px, #fff 85%, transparent),
+    radial-gradient(circle 4px at 48px 50px, #fff 85%, transparent),
+    radial-gradient(circle 4px at 72px 36px, #fff 85%, transparent),
+    linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.22);
+}
+.art-bbs::after {
+  width: 20px;
+  height: 20px;
+  bottom: 14px;
+  right: 18px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: -20px 0 0 0 rgba(255,255,255,0.6), -40px 0 0 0 rgba(255,255,255,0.3);
+}
+
+.slide-badge {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fz-xs);
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.slide-emoji {
+  font-size: 42px;
+}
+
+/* BBS 管理者スター（CSSアート） */
+.admin-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.admin-star::before,
+.admin-star::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 230deg,
+    #8ae0ff,
+    #b6f0ff,
+    #0a84ff,
+    #7fb6ff,
+    #8ae0ff
+  );
+  clip-path: polygon(
+    50% 0%,
+    63% 38%,
+    100% 38%,
+    70% 60%,
+    82% 100%,
+    50% 78%,
+    18% 100%,
+    30% 60%,
+    0% 38%,
+    37% 38%
+  );
+}
+
+.admin-star::after {
+  inset: 4px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,255,255,0.3));
+  clip-path: polygon(
+    50% 0%,
+    63% 38%,
+    100% 38%,
+    70% 60%,
+    82% 100%,
+    50% 78%,
+    18% 100%,
+    30% 60%,
+    0% 38%,
+    37% 38%
+  );
+}
+
+/* コントロール：左右ボタン & ドット */
+.slider-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.slider-controls button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--card-bg) 96%, var(--bg-surface));
+  color: var(--text-main);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.slider-controls button:hover {
+  background: var(--accent-soft);
+}
+
+.slider-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.slider-dots button {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  border: none;
+  background: color-mix(in srgb, var(--text-muted) 40%, transparent);
+  cursor: pointer;
+}
+
+.slider-dots button.active {
+  width: 18px;
+  background: var(--accent);
+}
+
+/* スマホ対応 */
+@media (max-width: 800px) {
+  .slider {
+    padding: var(--space-lg);
+  }
+
+  .slide {
+    padding: var(--space-lg);
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .slide-visual {
+    justify-self: center;
+    width: 180px;
+    height: 160px;
+  }
+
+  .slide-title {
+    font-size: 22px;
+  }
+}

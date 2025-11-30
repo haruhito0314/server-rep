@@ -171,88 +171,18 @@ function buildExprFn(exprRaw, vars) {
   }
 
   // ====== F(x,y,z) = 0 ======
-  // ====== F(x,y,z) = 0 （なめらか版） ======
-function drawImplicit() {
-  const expr = document.querySelector("#expr-implicit").value;
-  const xMin = Number(document.querySelector("#ix-min").value);
-  const xMax = Number(document.querySelector("#ix-max").value);
-  const yMin = Number(document.querySelector("#iy-min").value);
-  const yMax = Number(document.querySelector("#iy-max").value);
-  const zMin = Number(document.querySelector("#iz-min").value);
-  const zMax = Number(document.querySelector("#iz-max").value);
+  function drawImplicit() {
+    const expr = document.querySelector("#expr-implicit").value;
+    const xMin = Number(document.querySelector("#ix-min").value);
+    const xMax = Number(document.querySelector("#ix-max").value);
+    const yMin = Number(document.querySelector("#iy-min").value);
+    const yMax = Number(document.querySelector("#iy-max").value);
+    const zMin = Number(document.querySelector("#iz-min").value);
+    const zMax = Number(document.querySelector("#iz-max").value);
 
-  if (!(xMin < xMax && yMin < yMax && zMin < zMax)) {
-    throw new Error("範囲が不正です。");
-  }
-
-  const F = buildExprFn(expr, ["x", "y", "z"]);
-
-  // 分割数（滑らかさと重さのバランス）
-  const steps = 24; // 24^3 = 13,824 点くらい
-
-  const xs = [];
-  const ys = [];
-  const zs = [];
-  const vals = [];
-
-  for (let i = 0; i < steps; i++) {
-    const x = xMin + ((xMax - xMin) * i) / (steps - 1);
-    for (let j = 0; j < steps; j++) {
-      const y = yMin + ((yMax - yMin) * j) / (steps - 1);
-      for (let k = 0; k < steps; k++) {
-        const z = zMin + ((zMax - zMin) * k) / (steps - 1);
-        let v = NaN;
-        try {
-          v = F(x, y, z);
-        } catch {
-          v = NaN;
-        }
-        if (!Number.isFinite(v)) v = NaN;
-
-        xs.push(x);
-        ys.push(y);
-        zs.push(z);
-        vals.push(v);
-      }
+    if (!(xMin < xMax && yMin < yMax && zMin < zMax)) {
+      throw new Error("範囲が不正です。");
     }
-  }
-
-  const eps = 0.05; // 0 付近の範囲（狭いほど薄く・滑らか）
-
-  const data = [
-    {
-      type: "isosurface",
-      x: xs,
-      y: ys,
-      z: zs,
-      value: vals,
-      isomin: -eps,
-      isomax: eps,
-      surface: {
-        show: true,
-        count: 1, // 等値面の枚数（1で F≈0 の面だけ）
-      },
-      caps: {
-        x: { show: false },
-        y: { show: false },
-        z: { show: false },
-      },
-      colorscale: "Viridis",
-      opacity: 0.9,
-    },
-  ];
-
-  const layout = {
-    margin: { l: 0, r: 0, t: 0, b: 0 },
-    scene: {
-      xaxis: { title: "x" },
-      yaxis: { title: "y" },
-      zaxis: { title: "z" },
-    },
-  };
-
-  Plotly.newPlot(graphEl, data, layout, { responsive: true });
-}
 
   // ====== パラメータ表示 ======
   function drawParam() {
@@ -322,4 +252,4 @@ function drawImplicit() {
 
     Plotly.newPlot(graphEl, data, layout, { responsive: true });
   }
-});
+}});

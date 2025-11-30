@@ -5,40 +5,532 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>掲示板 | Mcommon Study</title>
     <link rel="stylesheet" href="/css/style.css" />
+
+    <style>
+      /* =========================
+         掲示板ページ全体
+      ========================== */
+      .board-page {
+        width: min(980px, 94%);
+        margin: 0 auto var(--space-xl);
+        display: grid;
+        gap: var(--space-xl);
+      }
+
+      .board-page h1,
+      .board-page h2,
+      .board-page h3 {
+        margin: 0 0 var(--space-sm);
+      }
+
+      /* =========================
+         ヒーロー部（前のレイアウト風）
+      ========================== */
+      .board-hero {
+        padding: 56px 0 24px;
+        border-bottom: 1px solid var(--border-soft); /* 下に線 */
+      }
+
+      .board-hero-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 40px;
+      }
+
+      .board-hero-left {
+        max-width: 640px;
+      }
+
+      .board-kicker {
+        font-size: var(--fz-xs);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+
+      .board-title {
+        font-size: clamp(24px, 3vw, 32px);
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .board-desc {
+        margin: 0;
+        font-size: var(--fz-md); /* ここは少し大きめのままでも読みやすいので据え置き */
+        line-height: 1.9;
+        color: color-mix(in srgb, var(--text-main) 88%, var(--text-muted));
+      }
+
+      .board-hero-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      .board-hero-right span {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .board-hero-right strong {
+        font-size: var(--fz-md);
+        color: var(--text-main);
+      }
+
+      /* =========================
+         新規投稿フォーム（白カード）
+      ========================== */
+      .post-form {
+        margin-top: 8px;
+        background: #ffffff;
+        border-radius: 26px;
+        padding: 32px 28px 28px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e5e7eb;
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      [data-theme="light"] .post-form {
+        background: #ffffff;
+      }
+
+      [data-theme="dark"] .post-form {
+        background: color-mix(in srgb, var(--card-bg) 94%, #000);
+        border-color: color-mix(in srgb, var(--border-soft) 70%, #000);
+      }
+
+      .post-form label {
+        font-size: var(--fz-sm);
+        color: var(--text-muted);
+      }
+
+      .post-form .input,
+      .post-form textarea {
+        background: color-mix(in srgb, #ffffff 96%, var(--card-bg));
+      }
+
+      #bbs-error {
+        min-height: 1.4em;
+      }
+
+      /* =========================
+         スレッドリスト ヘッダー
+      ========================== */
+      .board-list {
+        padding-bottom: var(--space-xl);
+      }
+
+      .board-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-lg);
+        margin-bottom: 12px;
+        margin-top: 8px;
+      }
+
+      .board-filter {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+      }
+
+      .filter-button {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid var(--border-soft);
+        background: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+      }
+
+      [data-theme="dark"] .filter-button {
+        background: var(--card-bg);
+      }
+
+      .filter-icon-lines {
+        width: 14px;
+        height: 14px;
+        position: relative;
+      }
+
+      .filter-icon-lines::before,
+      .filter-icon-lines::after,
+      .filter-icon-lines span {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1.5px;
+        border-radius: 999px;
+        background: var(--text-main);
+      }
+
+      .filter-icon-lines::before {
+        top: 2px;
+      }
+      .filter-icon-lines span {
+        top: 6px;
+        width: 65%;
+      }
+      .filter-icon-lines::after {
+        bottom: 2px;
+        width: 80%;
+      }
+
+      .board-list-title h2 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .board-search-row {
+        margin-bottom: 10px;
+      }
+
+      .board-search-input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border-soft);
+        background: #ffffff;
+        font-size: var(--fz-sm);
+        color: var(--text-main);
+      }
+
+      [data-theme="dark"] .board-search-input {
+        background: color-mix(in srgb, var(--card-bg) 96%, #000);
+      }
+
+      .board-list-divider {
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 8px;
+      }
+
+      /* =========================
+         投稿カード（Apple風行表示）
+      ========================== */
+      #bbs-list {
+        display: grid;
+        gap: 2px;
+      }
+
+      .post-card {
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(156, 163, 175, 0.2);
+      }
+
+      .post-card:last-child {
+        border-bottom: none;
+      }
+
+      .post-header {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: 4px;
+      }
+
+      .post-title-line {
+        font-size: var(--fz-md);
+        color: var(--text-main);
+        font-weight: 500;
+      }
+
+      .post-meta-line {
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+      }
+
+      .post-name {
+  font-size: var(--fz-sm);      /* 名前は普通サイズ */
+  font-weight: 500;
+}
+
+.post-date {
+  font-size: var(--fz-xs);      /* 日付は少し小さめ＆グレー */
+  color: var(--text-muted);
+}
+
+
+      /* ★ 投稿内容を少し大きく */
+      .post-body {
+        margin: 4px 0 var(--space-xs);
+        font-size: var(--fz-lg);          /* ← ここを大きく */
+        line-height: 1.9;
+        color: var(--text-main);
+        white-space: pre-wrap;
+      }
+
+      .reply-toggle-area {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border-soft);
+        background: transparent;
+        color: var(--text-muted);
+        font-size: var(--fz-xs);
+        cursor: pointer;
+      }
+
+      .reply-box {
+        margin-top: var(--space-xs);
+        padding-top: var(--space-xs);
+        border-top: 1px solid rgba(156, 163, 175, 0.25);
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .reply-form {
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .reply-list {
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .reply-item {
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--card-bg) 96%, #fff);
+        border: 1px solid rgba(156, 163, 175, 0.3);
+      }
+
+      .reply-header {
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+        margin: 0 0 2px;
+      }
+
+      /* ★ 返信内容も少し大きく */
+      .reply-text {
+        margin: 0;
+        font-size: var(--fz-lg);          /* ← ここも大きく */
+        line-height: 1.8;
+        color: var(--text-main);
+        white-space: pre-wrap;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 720px) {
+        .board-hero-main {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .board-hero-right {
+          align-items: flex-start;
+        }
+
+        .post-form {
+          padding: 24px 18px 22px;
+        }
+
+        .post-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      /* スレッド全体のブロック */
+.board-threads {
+  margin-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* 各スレッド行 */
+.post-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* 本文を大きめに */
+.post-body {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-main);
+  white-space: pre-wrap;
+}
+
+/* 右側の名前・日時・削除 */
+.post-side {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
+
+.post-side-name {
+  font-weight: 500;
+}
+
+.post-side-date {
+  white-space: nowrap;
+}
+
+.admin-crown {
+  margin-left: 4px;
+}
+
+/* 返信ボックスとの区切り */
+.reply-box {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* モバイルで 1 カラムに */
+@media (max-width: 720px) {
+  .post-row {
+    grid-template-columns: 1fr;
+  }
+  .post-side {
+    align-items: flex-start;
+  }
+}
+
+    </style>
   </head>
+
   <body>
     <div id="site-header"></div>
+
     <div class="page">
-      <main id="main-content" class="wrapper">
-        <h1 class="section-title">掲示板</h1>
-        <section class="glass-card">
-          <h3>新規投稿</h3>
-          <form id="bbs-form" class="form">
-            <input class="input" name="name" id="bbs-name" placeholder="名前（任意）" />
-            <input class="input" name="title" id="bbs-title" placeholder="タイトル（必須）" required />
-            <textarea class="input" name="body" id="bbs-body" placeholder="本文（必須）" required></textarea>
-            <input class="input" type="file" name="image" id="bbs-image" />
-            <button class="btn btn-primary" id="bbs-submit" type="submit" disabled>投稿する</button>
-          </form>
-        </section>
-
-        <section style="margin-top: var(--space-lg);">
-          <h3>投稿一覧</h3>
-          <div class="card-grid" id="bbs-list"></div>
-        </section>
-
-        <section style="margin-top: var(--space-lg);">
-          <h3>詳細・返信</h3>
-          <div class="glass-card" id="bbs-detail">
-            <p class="muted">投稿を選択してください。</p>
+      <main id="main-content" class="board-page">
+        <!-- ヒーロー（前の雰囲気に戻した版） -->
+        <section class="board-hero">
+          <div class="board-hero-main">
+            <div class="board-hero-left">
+              <p class="board-kicker">COMMUNITY BOARD</p>
+              <h1 class="board-title">大学生活掲示板</h1>
+              <p class="board-desc">
+                授業やレポート、サークルのことまで気軽に情報交換できます。相手への配慮と個人情報の取り扱いに気を付けながら活用してください。
+              </p>
+            </div>
+            <div class="board-hero-right">
+              <span>
+                投稿済みメッセージ
+                <strong id="board-posts">0</strong>
+              </span>
+              <span>
+                最新の投稿
+                <strong id="board-latest">--</strong>
+              </span>
+            </div>
           </div>
+        </section>
+
+        <section class="post-form">
+  <form id="bbs-form" class="post-form-inner">
+    <h3 class="section-title" style="margin-top:0;">新規投稿</h3>
+    <p id="bbs-error" class="muted"></p>
+
+    <label for="bbs-name">名前（匿名OK）</label>
+    <input class="input" id="bbs-name" placeholder="匿名ユーザーでもOK" />
+
+    <label for="bbs-body">投稿内容</label>
+    <textarea
+      class="input"
+      id="bbs-body"
+      rows="4"
+      placeholder="質問・雑談・相談など自由にどうぞ"
+      required
+    ></textarea>
+
+    <button id="bbs-submit" class="btn btn-primary" type="submit" disabled>
+      投稿する
+    </button>
+  </form>
+</section>
+
+
+        <!-- スレッド一覧 -->
+        <section class="board-list">
+          <div class="board-list-header">
+            <div class="board-filter">
+              <button
+                type="button"
+                class="filter-button"
+                id="bbs-filter-toggle"
+                aria-label="絞り込み"
+              >
+                <span class="filter-icon-lines"><span></span></span>
+              </button>
+              <span>絞り込む</span>
+            </div>
+            <div class="board-list-title">
+              <h2>スレッド</h2>
+            </div>
+          </div>
+
+          <div class="board-search-row hidden" id="bbs-search-row">
+            <input
+              id="bbs-search"
+              class="board-search-input"
+              placeholder="キーワードで検索"
+            />
+          </div>
+
+          <div class="board-list-divider"></div>
+
+          <div id="bbs-list"></div>
         </section>
       </main>
     </div>
+
     <div id="chatbot-slot"></div>
     <div id="site-footer"></div>
 
     <script src="/js/layout.js"></script>
+
+    <!-- 絞り込みアイコンで検索バー ON/OFF -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const toggle = document.querySelector("#bbs-filter-toggle");
+        const row = document.querySelector("#bbs-search-row");
+        const input = document.querySelector("#bbs-search");
+
+        toggle?.addEventListener("click", () => {
+          if (!row) return;
+          row.classList.toggle("hidden");
+          if (!row.classList.contains("hidden") && input) {
+            input.focus();
+          }
+        });
+      });
+    </script>
+
+    <!-- Firestore 掲示板ロジック -->
     <script type="module" src="/js/bbs-firebase.js"></script>
   </body>
 </html>

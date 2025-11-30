@@ -1,17 +1,28 @@
-<button class="chat-button" id="chat-open" aria-label="チャットを開く">💬</button>
+<div class="chat-button" id="chat-open" aria-label="チャットを開く"></div>
 
-<div class="chat-modal hide" id="chat-modal" role="dialog" aria-modal="true" aria-label="チャットボット">
-  <div class="chat-window glass-card">
-    <div class="section-title" style="margin:0;">Chatbot</div>
-    <div class="chat-messages" id="chat-messages">
-      <div class="chat-row">
-        <div class="bubble">AI: 準備中です。メッセージを送ってみてください。</div>
+<div class="chat-modal hide" id="chat-modal" aria-hidden="true">
+  <div class="chat-window" role="dialog" aria-label="チャットウインドウ">
+    <div class="chat-header">
+      <div class="chat-title-area">
+        <div class="chat-title">Mcommon Chat</div>
+        <div class="chat-subtitle">シンプルなQAチャット</div>
       </div>
+      <button class="chat-header-close" id="chat-close" aria-label="閉じる">×</button>
     </div>
-    <form id="chat-form" class="chat-row">
-      <input class="input" id="chat-input" type="text" placeholder="メッセージを入力" required />
-      <button class="btn btn-primary" type="submit">送信</button>
-      <button class="btn" type="button" id="chat-close">閉じる</button>
+
+    <div class="chat-messages" id="chat-messages"></div>
+
+    <form class="chat-input-row" id="chat-form">
+      <input
+        class="chat-input"
+        id="chat-input"
+        type="text"
+        name="message"
+        placeholder="メッセージを入力..."
+        autocomplete="off"
+        required
+      />
+      <button class="chat-send" id="chat-send" type="submit">送信</button>
     </form>
   </div>
 </div>

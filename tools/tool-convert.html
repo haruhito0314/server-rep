@@ -268,9 +268,8 @@
           audResultsBlobs = [];
           const ok = await loadFfmpeg();
           if (!ok && ok !== undefined) {
-            // fallback: WAVのみ
+            // fallback: WAVのみ（変換と再生可）
             const results = [];
-            let firstPreviewSet = false;
             for (const file of audFile.files) {
               try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -282,14 +281,10 @@
                 results.push(
                   `<div style="display:grid;gap:6px;">
                     <div><strong>${file.name}</strong> → WAV （簡易）</div>
+                    <audio controls src="${url}" style="width:100%;"></audio>
                     <a href="${url}" download="${baseName(file)}.wav">ダウンロード</a>
                   </div>`
                 );
-                if (!firstPreviewSet && audPreview) {
-                  audPreview.src = url;
-                  audPreview.load();
-                  firstPreviewSet = true;
-                }
               } catch (e) {
                 results.push(`<div>${file.name}: 変換に失敗しました。</div>`);
               }
@@ -364,16 +359,6 @@
             `;
           });
           audUploadList.innerHTML = items.join('');
-        }
-
-        function batchDownload(entries) {
-          if (!entries.length) return;
-          entries.forEach((item) => {
-            const a = document.createElement('a');
-            a.href = item.url;
-            a.download = item.name;
-            a.click();
-          });
         }
 
         function batchDownload(entries) {

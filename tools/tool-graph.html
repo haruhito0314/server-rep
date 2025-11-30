@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2D / 3Dグラフ | Mcommon Study</title>
+
+    <!-- 共通スタイル -->
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- Plotly（2D/3D 共通）-->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+    <style>
+      /* ===== グラフページ共通レイアウト ===== */
+      .graph-page {
+        padding-top: calc(var(--header-height) + var(--space-lg));
+        padding-bottom: var(--space-xl);
+      }
+
+      .graph-card {
+        max-width: 960px;
+        margin: 0 auto var(--space-xl);
+      }
+
+      .graph-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--space-sm);
+        margin-top: var(--space-sm);
+      }
+
+      .graph-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+        margin-top: var(--space-sm);
+      }
+
+      .graph-row .form-input,
+      .graph-row input,
+      .graph-row select {
+        flex: 1 1 0;
+      }
+
+      .graph-help {
+        font-size: var(--fz-xs);
+        color: var(--text-muted);
+        margin-top: var(--space-xs);
+      }
+
+      /* 3D モード切り替えパネル */
+      .graph-mode-panel {
+        display: none;
+        margin-top: var(--space-md);
+      }
+      .graph-mode-panel.active {
+        display: block;
+      }
+
+      #graph3d {
+        width: 100%;
+        height: 480px;
+        margin-top: var(--space-md);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+      }
+
+      #graph-error,
+      #graph-2d-error {
+        min-height: 1.5em;
+        color: var(--danger);
+        font-size: var(--fz-sm);
+        margin-top: var(--space-xs);
+      }
+
+      /* 2D/3D タブのコンテナ */
+      .graph-dim-tabs {
+        margin: var(--space-md) 0 var(--space-md);
+      }
+
+      /* 2D グラフモード（y=f(x) / param） */
+      .graph-mode {
+        margin-top: var(--space-md);
+      }
+
+      .graph-mode-yx,
+      .graph-mode-param {
+        margin-top: var(--space-sm);
+      }
+
+      /* スマホ対応ちょい調整 */
+      @media (max-width: 700px) {
+        #graph3d {
+          height: 360px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="site-header"></div>
+
+    <div class="page">
+      <main id="main-content" class="wrapper graph-page">
+        <h1 class="section-title">2D / 3D グラフツール</h1>
+        <p class="muted" style="max-width: 720px;">
+          2D と 3D のグラフを一つのページで描画できます。
+          <br />
+          <strong>sin, cos, tan, exp, log, sqrt, abs, pi, e</strong> などの関数が使えます。
+          冪乗は <code>^</code>（例: <code>sin(x^2 + y^2)</code>）で指定してください。
+        </p>
+
+        <!-- 次元切り替えタブ -->
+        <div class="tabs graph-dim-tabs" id="dim-tabs">
+          <button type="button" class="active" data-dim="2d">2Dグラフ</button>
+          <button type="button" data-dim="3d">3Dグラフ</button>
+        </div>
+
+        <!-- ===================== 2D グラフセクション ===================== -->
+        <section
+          id="graph-section-2d"
+          class="glass-card graph-card"
+          aria-label="2D グラフ"
+        >
+          <h2 class="card-title">2Dグラフ</h2>
+          <p class="muted">
+            関数表示 <strong>y = f(x)</strong> と、媒介変数表示
+            <strong>x = f(t), y = g(t)</strong> に対応した 2D グラフツールです。
+          </p>
+
+          <!-- 2D モード切り替え -->
+          <div class="tabs" id="graph-2d-mode-tabs" style="margin-top: var(--space-md);">
+            <button type="button" class="tab-btn active" data-mode="yx">
+              y = f(x)
+            </button>
+            <button type="button" class="tab-btn" data-mode="param">
+              x = f(t), y = g(t)
+            </button>
+          </div>
+
+          <!-- エラーメッセージ -->
+          <p id="graph-2d-error"></p>
+
+          <!-- y = f(x) モード -->
+          <div class="graph-mode graph-mode-yx">
+            <div class="form" style="display:grid;gap:var(--space-sm);margin-top:var(--space-md);">
+              <label class="form-label" for="expr-yx">関数 y = f(x)</label>
+              <input
+                class="form-input"
+                id="expr-yx"
+                placeholder="例: sin(x) / x"
+                value="sin(x)"
+              />
+
+              <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+                <div style="flex:1 1 120px;">
+                  <label class="form-label" for="yx-xmin">x 最小</label>
+                  <input class="form-input" id="yx-xmin" type="number" value="-10" step="0.5" />
+                </div>
+                <div style="flex:1 1 120px;">
+                  <label class="form-label" for="yx-xmax">x 最大</label>
+                  <input class="form-input" id="yx-xmax" type="number" value="10" step="0.5" />
+                </div>
+                <div style="flex:1 1 140px;">
+                  <label class="form-label" for="yx-steps">分割数</label>
+                  <input class="form-input" id="yx-steps" type="number" value="400" min="50" max="2000" />
+                </div>
+              </div>
+
+              <div class="actions" style="margin-top:var(--space-sm);">
+                <button class="btn btn-primary" id="btn-yx-plot" type="button">
+                  グラフを描画
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 媒介変数モード x=f(t), y=g(t) -->
+          <div class="graph-mode graph-mode-param" style="display:none;">
+            <div class="form" style="display:grid;gap:var(--space-sm);margin-top:var(--space-md);">
+              <label class="form-label" for="expr-xt">x = f(t)</label>
+              <input
+                class="form-input"
+                id="expr-xt"
+                placeholder="例: cos(t)"
+                value="cos(t)"
+              />
+
+              <label class="form-label" for="expr-yt">y = g(t)</label>
+              <input
+                class="form-input"
+                id="expr-yt"
+                placeholder="例: sin(t)"
+                value="sin(t)"
+              />
+
+              <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+                <div style="flex:1 1 120px;">
+                  <label class="form-label" for="t2-min">t 最小</label>
+                  <input class="form-input" id="t2-min" type="number" value="0" step="0.5" />
+                </div>
+                <div style="flex:1 1 120px;">
+                  <label class="form-label" for="t2-max">t 最大</label>
+                  <input class="form-input" id="t2-max" type="number" value="6.283" step="0.5" />
+                </div>
+                <div style="flex:1 1 140px;">
+                  <label class="form-label" for="t2-steps">分割数</label>
+                  <input class="form-input" id="t2-steps" type="number" value="400" min="50" max="2000" />
+                </div>
+              </div>
+
+              <div class="actions" style="margin-top:var(--space-sm);">
+                <button class="btn btn-primary" id="btn-param-plot" type="button">
+                  グラフを描画
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- グラフ表示エリア -->
+          <div id="graph-2d-container" style="margin-top: var(--space-lg);">
+            <div
+              id="graph-2d"
+              style="width:100%;min-height:380px;border-radius:var(--radius-card);overflow:hidden;"
+            ></div>
+          </div>
+        </section>
+
+        <!-- ===================== 3D グラフセクション ===================== -->
+        <section
+          id="graph-section-3d"
+          class="glass-card graph-card"
+          aria-label="3D グラフ"
+          style="display:none;"
+        >
+          <h2 class="card-title">3Dグラフ</h2>
+          <p class="muted">
+            関数を入力して 3D グラフを描画します。<br />
+            <code>sin</code>, <code>cos</code>, <code>tan</code>, <code>exp</code>,
+            <code>log</code>, <code>sqrt</code>, <code>abs</code>,
+            <code>pi</code>, <code>e</code> が使えます。冪乗は <code>^</code>
+            で指定（例: <code>sin(x^2 + y^2)</code>）。
+          </p>
+
+          <!-- モード切り替えタブ -->
+          <div class="tabs" id="graph-mode-tabs" style="margin-top: var(--space-md);">
+            <button type="button" class="active" data-mode="surface">
+              z = f(x, y)
+            </button>
+            <button type="button" data-mode="implicit">
+              F(x, y, z) = 0
+            </button>
+            <button type="button" data-mode="param3d">
+              パラメータ表示
+            </button>
+          </div>
+
+          <!-- ★ x,y,z 共通範囲スライダー -->
+          <div class="graph-row" id="xyz-range-row" style="margin-top: var(--space-md);">
+            <label class="form-label" for="xyz-range" style="flex:0 0 auto;">
+              共通範囲（-R ～ +R）
+            </label>
+            <input
+              id="xyz-range"
+              type="range"
+              min="1"
+              max="10"
+              step="0.5"
+              value="3"
+              style="flex:2 1 0;"
+            />
+            <span class="graph-help" id="xyz-range-display" style="flex:0 0 auto;">
+              R = 3
+            </span>
+            <button class="btn" type="button" id="xyz-auto" style="flex:0 0 auto;">
+              範囲を自動調整
+            </button>
+          </div>
+
+          <!-- z = f(x,y) -->
+          <div class="graph-mode-panel active" data-panel="surface">
+            <div class="graph-row">
+              <label class="form-label" for="expr-surface">z =</label>
+              <input
+                id="expr-surface"
+                class="form-input"
+                placeholder="例: sin(x^2 + y^2) / (x^2 + y^2 + 1)"
+                value="sin(x^2 + y^2) / (x^2 + y^2 + 1)"
+              />
+            </div>
+            <div class="graph-form-grid">
+              <div>
+                <label class="form-label" for="x-min">x 最小</label>
+                <input id="x-min" type="number" class="form-input" value="-3" />
+              </div>
+              <div>
+                <label class="form-label" for="x-max">x 最大</label>
+                <input id="x-max" type="number" class="form-input" value="3" />
+              </div>
+              <div>
+                <label class="form-label" for="y-min">y 最小</label>
+                <input id="y-min" type="number" class="form-input" value="-3" />
+              </div>
+              <div>
+                <label class="form-label" for="y-max">y 最大</label>
+                <input id="y-max" type="number" class="form-input" value="3" />
+              </div>
+            </div>
+            <p class="graph-help">
+              グリッド数: 35 × 35 固定（重くなるのを避けるため）。
+            </p>
+          </div>
+
+          <!-- F(x,y,z)=0 -->
+          <div class="graph-mode-panel" data-panel="implicit">
+            <div class="graph-row">
+              <label class="form-label" for="expr-implicit">F(x, y, z) =</label>
+              <input
+                id="expr-implicit"
+                class="form-input"
+                placeholder="例: x^2 + y^2 + z^2 - 4   （半径2の球）"
+                value="x^2 + y^2 + z^2 - 4"
+              />
+            </div>
+            <div class="graph-form-grid">
+              <div>
+                <label class="form-label" for="ix-min">x 最小</label>
+                <input id="ix-min" type="number" class="form-input" value="-3" />
+              </div>
+              <div>
+                <label class="form-label" for="ix-max">x 最大</label>
+                <input id="ix-max" type="number" class="form-input" value="3" />
+              </div>
+              <div>
+                <label class="form-label" for="iy-min">y 最小</label>
+                <input id="iy-min" type="number" class="form-input" value="-3" />
+              </div>
+              <div>
+                <label class="form-label" for="iy-max">y 最大</label>
+                <input id="iy-max" type="number" class="form-input" value="3" />
+              </div>
+              <div>
+                <label class="form-label" for="iz-min">z 最小</label>
+                <input id="iz-min" type="number" class="form-input" value="-3" />
+              </div>
+              <div>
+                <label class="form-label" for="iz-max">z 最大</label>
+                <input id="iz-max" type="number" class="form-input" value="3" />
+              </div>
+            </div>
+            <p class="graph-help">
+              立体をボクセル状にサンプリングし、|F(x,y,z)| が小さい点だけ散布図として描画します。
+            </p>
+          </div>
+
+          <!-- パラメータ表示 3D -->
+          <div class="graph-mode-panel" data-panel="param3d">
+            <div class="graph-row">
+              <label class="form-label" for="expr-x">x(t) =</label>
+              <input
+                id="expr-x"
+                class="form-input"
+                value="cos(t)"
+                placeholder="例: cos(t)"
+              />
+            </div>
+            <div class="graph-row">
+              <label class="form-label" for="expr-y">y(t) =</label>
+              <input
+                id="expr-y"
+                class="form-input"
+                value="sin(t)"
+                placeholder="例: sin(t)"
+              />
+            </div>
+            <div class="graph-row">
+              <label class="form-label" for="expr-z">z(t) =</label>
+              <input
+                id="expr-z"
+                class="form-input"
+                value="t / 4"
+                placeholder="例: t / 4"
+              />
+            </div>
+            <div class="graph-form-grid">
+              <div>
+                <label class="form-label" for="t3-min">t 最小</label>
+                <input id="t3-min" type="number" class="form-input" value="0" />
+              </div>
+              <div>
+                <label class="form-label" for="t3-max">t 最大</label>
+                <input
+                  id="t3-max"
+                  type="number"
+                  class="form-input"
+                  value="6.283"
+                />
+              </div>
+            </div>
+            <p class="graph-help">
+              ステップ数: 300 固定。ヘリックスのような空間曲線も描けます。
+            </p>
+          </div>
+
+          <div class="graph-row" style="margin-top: var(--space-md);">
+            <button class="btn btn-primary" id="graph-run" type="button">
+              描画
+            </button>
+            <button class="btn" id="graph-clear" type="button">
+              クリア
+            </button>
+          </div>
+
+          <p id="graph-error"></p>
+          <div id="graph3d"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="chatbot-slot"></div>
+    <div id="site-footer"></div>
+
+    <!-- 共通レイアウト（ヘッダー・フッター・チャットボットなど） -->
+    <script src="/js/layout.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        /* ========== 共通：式評価ユーティリティ ========== */
+        function makeEvaluator(exprRaw) {
+          const expr = (exprRaw || "").trim();
+          if (!expr) throw new Error("式が空です。");
+
+          // ^ を JS の ** に変換
+          const safe = expr.replace(/\^/g, "**");
+
+          // new Function に渡す JS コード（テンプレートリテラルは使わない）
+          const body =
+            "with (Math) {\n" +
+            "  const pi = Math.PI, e = Math.E;\n" +
+            "  with (vars) {\n" +
+            "    return " +
+            safe +
+            ";\n" +
+            "  }\n" +
+            "}";
+
+          const fn = new Function("vars", body);
+
+          return (vars) => {
+            try {
+              const v = fn(vars);
+              if (typeof v !== "number" || !isFinite(v)) return NaN;
+              return v;
+            } catch {
+              return NaN;
+            }
+          };
+        }
+
+        /* ========== 2D / 3D タブ切り替え ========== */
+        const dimTabs = document.querySelectorAll("#dim-tabs button");
+        const section2d = document.getElementById("graph-section-2d");
+        const section3d = document.getElementById("graph-section-3d");
+
+        dimTabs.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            dimTabs.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            const dim = btn.dataset.dim;
+            if (dim === "2d") {
+              section2d.style.display = "";
+              section3d.style.display = "none";
+              plot2dCurrent();
+            } else {
+              section2d.style.display = "none";
+              section3d.style.display = "";
+              runSurface();
+            }
+          });
+        });
+
+        /* ========== 2D グラフ部分 ========== */
+        const modeTabs2d = document.querySelectorAll(
+          "#graph-2d-mode-tabs .tab-btn"
+        );
+        const modeYx = document.querySelector(".graph-mode-yx");
+        const modeParam2d = document.querySelector(".graph-mode-param");
+        const error2dEl = document.getElementById("graph-2d-error");
+
+        modeTabs2d.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            modeTabs2d.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            const mode = btn.dataset.mode;
+            if (mode === "yx") {
+              modeYx.style.display = "";
+              modeParam2d.style.display = "none";
+              error2dEl.textContent = "";
+            } else {
+              modeYx.style.display = "none";
+              modeParam2d.style.display = "";
+              error2dEl.textContent = "";
+            }
+          });
+        });
+
+        const btnYxPlot = document.getElementById("btn-yx-plot");
+        const btnParamPlot = document.getElementById("btn-param-plot");
+
+        function plot2dCurrent() {
+          const active = document.querySelector("#graph-2d-mode-tabs .tab-btn.active");
+          if (!active) return;
+          if (active.dataset.mode === "yx") {
+            plot2dYx();
+          } else {
+            plot2dParam();
+          }
+        }
+
+        // Enterキーで描画（2Dセクション内）
+        document.getElementById("graph-section-2d")?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            plot2dCurrent();
+          }
+        });
+
+        // --- y = f(x) ---
+        btnYxPlot?.addEventListener("click", plot2dYx);
+        function plot2dYx() {
+          error2dEl.textContent = "";
+          const expr = document.getElementById("expr-yx").value;
+          const xMin = parseFloat(
+            document.getElementById("yx-xmin").value || "-10"
+          );
+          const xMax = parseFloat(
+            document.getElementById("yx-xmax").value || "10"
+          );
+          const steps = parseInt(
+            document.getElementById("yx-steps").value || "400",
+            10
+          );
+
+          if (!(xMin < xMax)) {
+            error2dEl.textContent = "x の最小値と最大値を確認してください。";
+            return;
+          }
+          if (!(steps > 0 && steps <= 5000)) {
+            error2dEl.textContent = "分割数は 1〜5000 の範囲で指定してください。";
+            return;
+          }
+
+          let evalY;
+          try {
+            evalY = makeEvaluator(expr);
+          } catch (e) {
+            error2dEl.textContent = "関数の式が正しくありません。";
+            return;
+          }
+
+          const xs = [];
+          const ys = [];
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const x = xMin + (xMax - xMin) * t;
+            const y = evalY({ x });
+            xs.push(x);
+            ys.push(isFinite(y) ? y : null);
+          }
+
+          const trace = {
+            x: xs,
+            y: ys,
+            mode: "lines",
+            type: "scatter",
+            line: { width: 2 },
+          };
+
+          const layout = {
+            margin: { t: 10, r: 10, b: 40, l: 50 },
+            xaxis: { title: "x", zeroline: true },
+            yaxis: {
+              title: "y",
+              zeroline: true,
+              scaleanchor: "x",
+              scaleratio: 1,
+            },
+          };
+
+          Plotly.newPlot("graph-2d", [trace], layout, {
+            responsive: true,
+          });
+        }
+
+        // --- パラメトリック 2D ---
+        btnParamPlot?.addEventListener("click", plot2dParam);
+        function plot2dParam() {
+          error2dEl.textContent = "";
+          const exprX = document.getElementById("expr-xt").value;
+          const exprY = document.getElementById("expr-yt").value;
+          const tMin = parseFloat(
+            document.getElementById("t2-min").value || "0"
+          );
+          const tMax = parseFloat(
+            document.getElementById("t2-max").value || "6.283"
+          );
+          const steps = parseInt(
+            document.getElementById("t2-steps").value || "400",
+            10
+          );
+
+          if (!(tMin < tMax)) {
+            error2dEl.textContent = "t の最小値と最大値を確認してください。";
+            return;
+          }
+          if (!(steps > 0 && steps <= 5000)) {
+            error2dEl.textContent = "分割数は 1〜5000 の範囲で指定してください。";
+            return;
+          }
+
+          let evalX, evalYFn;
+          try {
+            evalX = makeEvaluator(exprX);
+            evalYFn = makeEvaluator(exprY);
+          } catch {
+            error2dEl.textContent = "x(t), y(t) の式が正しくありません。";
+            return;
+          }
+
+          const xs = [];
+          const ys = [];
+          for (let i = 0; i <= steps; i++) {
+            const s = i / steps;
+            const t = tMin + (tMax - tMin) * s;
+            const x = evalX({ t });
+            const y = evalYFn({ t });
+            xs.push(isFinite(x) ? x : null);
+            ys.push(isFinite(y) ? y : null);
+          }
+
+          const trace = {
+            x: xs,
+            y: ys,
+            mode: "lines",
+            type: "scatter",
+            line: { width: 2 },
+          };
+
+          const layout = {
+            margin: { t: 10, r: 10, b: 40, l: 50 },
+            xaxis: { title: "x", zeroline: true },
+            yaxis: {
+              title: "y",
+              zeroline: true,
+              scaleanchor: "x",
+              scaleratio: 1,
+            },
+          };
+
+          Plotly.newPlot("graph-2d", [trace], layout, {
+            responsive: true,
+          });
+        }
+
+        /* ========== 3D グラフ部分 ========== */
+        const tabs3d = document.querySelectorAll("#graph-mode-tabs button");
+        const panels3d = document.querySelectorAll(".graph-mode-panel");
+        const error3dEl = document.getElementById("graph-error");
+        const autoRangeBtn = document.getElementById("xyz-auto");
+
+        tabs3d.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            tabs3d.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            const mode = btn.dataset.mode;
+            panels3d.forEach((panel) => {
+              panel.classList.toggle(
+                "active",
+                panel.dataset.panel === mode
+              );
+            });
+            error3dEl.textContent = "";
+          });
+        });
+
+        const btnRun3d = document.getElementById("graph-run");
+        const btnClear3d = document.getElementById("graph-clear");
+
+        // ★ 共通範囲スライダー（x,y,z 全部 -R〜+R にする）
+        const rangeSlider = document.getElementById("xyz-range");
+        const rangeDisplay = document.getElementById("xyz-range-display");
+
+        function applyRangeToInputs(R) {
+          const pairs = [
+            ["x-min", "x-max"],
+            ["y-min", "y-max"],
+            ["ix-min", "ix-max"],
+            ["iy-min", "iy-max"],
+            ["iz-min", "iz-max"],
+          ];
+          pairs.forEach(([minId, maxId]) => {
+            const minEl = document.getElementById(minId);
+            const maxEl = document.getElementById(maxId);
+            if (minEl) minEl.value = -R;
+            if (maxEl) maxEl.value = R;
+          });
+        }
+
+        if (rangeSlider) {
+          rangeSlider.addEventListener("input", () => {
+            const R = parseFloat(rangeSlider.value);
+            if (rangeDisplay) rangeDisplay.textContent = "R = " + R;
+            applyRangeToInputs(R);
+          });
+
+          // 初期状態：スライダーの値(3)を入力にも反映
+          applyRangeToInputs(parseFloat(rangeSlider.value || "3"));
+        }
+
+        autoRangeBtn?.addEventListener("click", () => {
+          const R = pickBestRange();
+          if (R && rangeSlider) {
+            rangeSlider.value = R;
+            if (rangeDisplay) rangeDisplay.textContent = "R = " + R;
+            applyRangeToInputs(R);
+          }
+          // 直後に再描画
+          const activeTab = document.querySelector("#graph-mode-tabs button.active");
+          if (activeTab?.dataset.mode === "implicit") {
+            runImplicit();
+          } else {
+            runSurface();
+          }
+        });
+
+        btnRun3d?.addEventListener("click", () => {
+          error3dEl.textContent = "";
+          const activeTab = document.querySelector(
+            "#graph-mode-tabs button.active"
+          );
+          if (!activeTab) return;
+          const mode = activeTab.dataset.mode;
+
+          if (mode === "surface") {
+            runSurface();
+          } else if (mode === "implicit") {
+            runImplicit();
+          } else {
+            runParam3d();
+          }
+        });
+
+        btnClear3d?.addEventListener("click", () => {
+          error3dEl.textContent = "";
+          Plotly.purge("graph3d");
+        });
+
+        // --- z = f(x,y) ---
+        function runSurface() {
+          const expr = document.getElementById("expr-surface").value;
+          const xMin = parseFloat(
+            document.getElementById("x-min").value || "-3"
+          );
+          const xMax = parseFloat(
+            document.getElementById("x-max").value || "3"
+          );
+          const yMin = parseFloat(
+            document.getElementById("y-min").value || "-3"
+          );
+          const yMax = parseFloat(
+            document.getElementById("y-max").value || "3"
+          );
+
+          if (!(xMin < xMax) || !(yMin < yMax)) {
+            error3dEl.textContent = "範囲の最小値・最大値を確認してください。";
+            return;
+          }
+
+          let evalZ;
+          try {
+            evalZ = makeEvaluator(expr);
+          } catch {
+            error3dEl.textContent = "z = f(x,y) の式が正しくありません。";
+            return;
+          }
+
+          const n = 35;
+          const xs = [];
+          const ys = [];
+          const zGrid = [];
+
+          for (let i = 0; i < n; i++) {
+            const x = xMin + ((xMax - xMin) * i) / (n - 1);
+            xs.push(x);
+          }
+          for (let j = 0; j < n; j++) {
+            const y = yMin + ((yMax - yMin) * j) / (n - 1);
+            ys.push(y);
+          }
+
+          for (let j = 0; j < n; j++) {
+            const row = [];
+            for (let i = 0; i < n; i++) {
+              const x = xs[i];
+              const y = ys[j];
+              const z = evalZ({ x, y });
+              row.push(isFinite(z) ? z : NaN);
+            }
+            zGrid.push(row);
+          }
+
+          const data = [
+            {
+              type: "surface",
+              x: xs,
+              y: ys,
+              z: zGrid,
+              showscale: true,
+            },
+          ];
+
+          const layout = {
+            margin: { t: 10, r: 10, b: 10, l: 10 },
+            scene: {
+              xaxis: {
+                title: "x",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              yaxis: {
+                title: "y",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              zaxis: {
+                title: "z",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+            },
+          };
+
+          Plotly.newPlot("graph3d", data, layout, {
+            responsive: true,
+          });
+        }
+
+        // --- F(x,y,z) = 0 （isosurface で面表示）---
+        function runImplicit() {
+          const expr = document.getElementById("expr-implicit").value;
+          const xMin = parseFloat(
+            document.getElementById("ix-min").value || "-3"
+          );
+          const xMax = parseFloat(
+            document.getElementById("ix-max").value || "3"
+          );
+          const yMin = parseFloat(
+            document.getElementById("iy-min").value || "-3"
+          );
+          const yMax = parseFloat(
+            document.getElementById("iy-max").value || "3"
+          );
+          const zMin = parseFloat(
+            document.getElementById("iz-min").value || "-3"
+          );
+          const zMax = parseFloat(
+            document.getElementById("iz-max").value || "3"
+          );
+
+          if (!(xMin < xMax) || !(yMin < yMax) || !(zMin < zMax)) {
+            error3dEl.textContent = "範囲の最小値・最大値を確認してください。";
+            return;
+          }
+
+          let evalF;
+          try {
+            evalF = makeEvaluator(expr);
+          } catch {
+            error3dEl.textContent = "F(x,y,z) の式が正しくありません。";
+            return;
+          }
+
+          const n = 28; // 28^3 ≒ 21952 点
+          const xs = [];
+          const ys = [];
+          const zs = [];
+          const values = [];
+
+          for (let i = 0; i < n; i++) {
+            const x = xMin + ((xMax - xMin) * i) / (n - 1);
+            for (let j = 0; j < n; j++) {
+              const y = yMin + ((yMax - yMin) * j) / (n - 1);
+              for (let k = 0; k < n; k++) {
+                const z = zMin + ((zMax - zMin) * k) / (n - 1);
+                const v = evalF({ x, y, z });
+                if (!isFinite(v)) {
+                  xs.push(x);
+                  ys.push(y);
+                  zs.push(z);
+                  values.push(NaN);
+                } else {
+                  xs.push(x);
+                  ys.push(y);
+                  zs.push(z);
+                  values.push(v);
+                }
+              }
+            }
+          }
+
+          const cleanValues = values.map((v) => (isFinite(v) ? v : null));
+          const finiteValues = cleanValues.filter((v) => isFinite(v));
+          if (!finiteValues.length) {
+            error3dEl.textContent =
+              "有効な点が見つかりませんでした。式や範囲を見直してください。";
+            Plotly.purge("graph3d");
+            return;
+          }
+
+          const absVals = finiteValues.map((v) => Math.abs(v)).sort((a, b) => a - b);
+          const idx = Math.floor(absVals.length * 0.1); // 下位10%あたり
+          const base = absVals[idx] || absVals[0] || 0.1;
+          const isoRange = base || 0.1;
+
+          const data = [
+            {
+              type: "isosurface",
+              x: xs,
+              y: ys,
+              z: zs,
+              value: cleanValues,
+              isomin: -isoRange,
+              isomax: isoRange,
+              surface: { show: true, count: 1 },
+              caps: {
+                x: { show: false },
+                y: { show: false },
+                z: { show: false },
+              },
+              showscale: true,
+            },
+          ];
+
+          const layout = {
+            margin: { t: 10, r: 10, b: 10, l: 10 },
+            scene: {
+              xaxis: {
+                title: "x",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              yaxis: {
+                title: "y",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              zaxis: {
+                title: "z",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+            },
+          };
+
+          Plotly.newPlot("graph3d", data, layout, {
+            responsive: true,
+          });
+        }
+
+        // --- パラメータ表示 3D ---
+        function runParam3d() {
+          const exprX = document.getElementById("expr-x").value;
+          const exprY = document.getElementById("expr-y").value;
+          const exprZ = document.getElementById("expr-z").value;
+          const tMin = parseFloat(
+            document.getElementById("t3-min").value || "0"
+          );
+          const tMax = parseFloat(
+            document.getElementById("t3-max").value || "6.283"
+          );
+
+          if (!(tMin < tMax)) {
+            error3dEl.textContent = "t の最小値・最大値を確認してください。";
+            return;
+          }
+
+          let evalX, evalYFn, evalZ;
+          try {
+            evalX = makeEvaluator(exprX);
+            evalYFn = makeEvaluator(exprY);
+            evalZ = makeEvaluator(exprZ);
+          } catch {
+            error3dEl.textContent =
+              "x(t), y(t), z(t) の式が正しくありません。";
+            return;
+          }
+
+          const steps = 300;
+          const xs = [];
+          const ys = [];
+          const zs = [];
+
+          for (let i = 0; i <= steps; i++) {
+            const s = i / steps;
+            const t = tMin + (tMax - tMin) * s;
+            const x = evalX({ t });
+            const y = evalYFn({ t });
+            const z = evalZ({ t });
+            xs.push(isFinite(x) ? x : null);
+            ys.push(isFinite(y) ? y : null);
+            zs.push(isFinite(z) ? z : null);
+          }
+
+          const data = [
+            {
+              type: "scatter3d",
+              mode: "lines",
+              x: xs,
+              y: ys,
+              z: zs,
+              line: {
+                width: 4,
+              },
+            },
+          ];
+
+          const layout = {
+            margin: { t: 10, r: 10, b: 10, l: 10 },
+            scene: {
+              xaxis: {
+                title: "x",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              yaxis: {
+                title: "y",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+              zaxis: {
+                title: "z",
+                showbackground: false,
+                showgrid: false,
+                zeroline: false,
+                showline: true,
+              },
+            },
+          };
+
+          Plotly.newPlot("graph3d", data, layout, {
+            responsive: true,
+          });
+        }
+
+        // 範囲自動調整（簡易ヒューリスティック）
+        function pickBestRange() {
+          const activeTab = document.querySelector("#graph-mode-tabs button.active");
+          const mode = activeTab?.dataset.mode || "surface";
+          const candidates = [2, 3, 4, 6, 8, 10];
+
+          if (mode === "implicit") {
+            const expr = document.getElementById("expr-implicit").value;
+            let evalF;
+            try {
+              evalF = makeEvaluator(expr);
+            } catch {
+              return parseFloat(rangeSlider?.value || "3");
+            }
+            for (const R of candidates) {
+              if (testImplicitRange(evalF, R)) return R;
+            }
+            return candidates.at(-1);
+          } else {
+            // surface
+            const expr = document.getElementById("expr-surface").value;
+            let evalZ;
+            try {
+              evalZ = makeEvaluator(expr);
+            } catch {
+              return parseFloat(rangeSlider?.value || "3");
+            }
+            for (const R of candidates) {
+              if (testSurfaceRange(evalZ, R)) return R;
+            }
+            return candidates.at(-1);
+          }
+        }
+
+        function testSurfaceRange(evalZ, R) {
+          const n = 10;
+          let finite = 0;
+          for (let i = 0; i < n; i++) {
+            const x = -R + (2 * R * i) / (n - 1);
+            for (let j = 0; j < n; j++) {
+              const y = -R + (2 * R * j) / (n - 1);
+              const z = evalZ({ x, y });
+              if (isFinite(z)) finite++;
+            }
+          }
+          return finite > n * n * 0.6;
+        }
+
+        function testImplicitRange(evalF, R) {
+          const n = 8;
+          let finite = 0;
+          for (let i = 0; i < n; i++) {
+            const x = -R + (2 * R * i) / (n - 1);
+            for (let j = 0; j < n; j++) {
+              const y = -R + (2 * R * j) / (n - 1);
+              for (let k = 0; k < n; k++) {
+                const z = -R + (2 * R * k) / (n - 1);
+                const v = evalF({ x, y, z });
+                if (isFinite(v)) finite++;
+              }
+            }
+          }
+          return finite > n * n * n * 0.4;
+        }
+
+        // 初期描画
+        plot2dYx();
+        runSurface();
+      });
+    </script>
+  </body>
+</html>

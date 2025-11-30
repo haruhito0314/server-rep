@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>力学 | 解説動画 | Mcommon Study</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .video-page {
+        width: min(960px, 94%);
+        margin: 0 auto;
+        padding-top: calc(var(--header-height) + var(--space-lg));
+        padding-bottom: var(--space-xl);
+        display: grid;
+        gap: var(--space-lg);
+      }
+      .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-md);
+        margin-top: var(--space-md);
+      }
+      .video-card iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        min-height: 180px;
+        border: 0;
+        border-radius: var(--radius-card);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <main id="main-content" class="video-page">
+
+      <a class="btn" href="./index.html">力学トップに戻る</a>
+      <article class="glass-card" style="margin-top:var(--space-sm);">
+        <h1 class="section-title" style="margin:0 0 var(--space-sm);">解説動画</h1>
+        <p class="muted">横並びのカードに動画を貼っています。新しい動画ページを作ったら、カードのリンク先を差し替えてください。</p>
+        <div class="video-grid">
+          <article class="glass-card video-card">
+            <h3>力学2 レポート1の解説</h3>
+            <p class="muted">大問ごとの解説動画リンクと参考図</p>
+            <iframe src="https://www.youtube.com/embed/MBZug3sWW7k" allowfullscreen></iframe>
+            <a class="btn" href="./videos-pages/video4.html">詳しく見る</a>
+          </article>
+        </div>
+        <p class="muted" style="margin-top:var(--space-sm);">※ 新しい動画ページを作成したら <code>./videos-pages/videoX.html</code> を追加し、カードを増やしてください。</p>
+      </article>
+
+    </main>
+    <div id="chatbot-slot"></div>
+    <div id="site-footer"></div>
+    <script src="/js/layout.js"></script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-<header class="site-header">
+<header id="site-header" class="site-header">
   <div class="header-inner">
     <a class="logo" href="/index.html" aria-label="Mcommon Study ホーム">
       <span class="logo-mark" aria-hidden="true"></span>
@@ -8,8 +8,8 @@
     <nav class="nav" aria-label="Primary">
       <a href="/index.html" data-nav="home">ホーム</a>
       <a href="/news.html" data-nav="news">お知らせ</a>
-      <a href="/tools.html" data-nav="tools">ツール</a>
-      <a href="/subjects.html" data-nav="subjects">科目一覧</a>
+      <a href="/tools.html" data-nav="tools" data-mega="tools">ツール</a>
+      <a href="/subjects.html" data-nav="subjects" data-mega="subjects">科目一覧</a>
       <a href="/bbs.html" data-nav="bbs">掲示板</a>
       <a href="/contact.html" data-nav="contact">サポート</a>
     </nav>
@@ -24,7 +24,50 @@
         <button class="toggle-btn" data-theme-btn="light">☀️</button>
         <button class="toggle-btn" data-theme-btn="dark">🌙</button>
       </div>
-      <button class="btn" data-admin-toggle hidden>管理者モード解除</button>
+      <button class="btn btn-ghost" data-admin-toggle aria-pressed="false" hidden style="padding:6px 10px;font-size:12px;">
+        管理モード
+      </button>
+    </div>
+  </div>
+  <div class="mega-menu" id="mega-tools">
+    <div class="mega-inner">
+      <div class="mega-column">
+        <p class="mega-title">ツール</p>
+        <a href="/tools/tool-graph.html">グラフツール (2D/3D)</a>
+        <a href="/tools/tool-memo.html">メモツール</a>
+        <a href="/tools/tool-convert.html">メディア変換</a>
+        <a href="/tools/tool-molecule.html">分子ビューア</a>
+        <a href="/tools/tool-split.html">割り勘ツール</a>
+      </div>
+      <div class="mega-column">
+        <p class="mega-title">関連</p>
+        <a href="/tools.html">ツール一覧</a>
+        <a href="/index.html#slides">トップのツールセクション</a>
+      </div>
+    </div>
+  </div>
+  <div class="mega-menu" id="mega-subjects">
+    <div class="mega-inner" style="grid-template-columns: repeat(auto-fit,minmax(260px,1fr));">
+      <div class="mega-column">
+        <p class="mega-title">科目一覧</p>
+        <div style="display:grid; gap:4px;">
+          <a href="/subjects/微分積分/index.html">微分積分</a>
+          <a href="/subjects/線形代数/index.html">線形代数</a>
+          <a href="/subjects/力学/index.html">力学</a>
+          <a href="/subjects/電磁気/index.html">電磁気</a>
+          <a href="/subjects/論理学/index.html">論理学</a>
+          <a href="/subjects/化学/index.html">化学</a>
+          <a href="/subjects/CP/index.html">CP</a>
+        </div>
+      </div>
+      <div class="mega-column">
+        <p class="mega-title">ショートカット</p>
+        <div style="display:grid; gap:4px;">
+          <a href="/subjects.html">科目トップページ</a>
+          <a href="/news.html">お知らせ一覧</a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
+<div id="mega-backdrop" class="mega-backdrop"></div>

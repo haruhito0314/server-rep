@@ -13,11 +13,13 @@
         <h1 class="section-title">お知らせ</h1>
         <div class="tabs" aria-label="カテゴリ">
           <button data-tab="all">すべて</button>
-          <button data-tab="更新">更新</button>
-          <button data-tab="メンテナンス">メンテナンス</button>
-          <button data-tab="注意事項">注意事項</button>
+          <button data-tab="お知らせ">お知らせ</button>
+          <button data-tab="解説・学習">解説・学習</button>
         </div>
-        <div id="news-list" class="news-grid" style="margin-top: var(--space-md);"></div>
+        <div class="search-box" style="margin-top: var(--space-sm);">
+          <input id="news-search" type="search" placeholder="キーワードで検索（タイトル・本文）" />
+        </div>
+        <div id="news-list" class="news-list" style="margin-top: var(--space-md);"></div>
       </main>
     </div>
     <div id="chatbot-slot"></div>

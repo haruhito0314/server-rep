@@ -14,66 +14,133 @@
           <div class="hero-content">
             <p class="chip">近未来の学習サイト</p>
             <h1>進むなら足跡のない方へ</h1>
-            <p>暗記に頼らず概念を理解するための効率的な学習サイクル。</p>
+            <p>理解を深めるための静かなワークスペース。</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="/subjects.html">科目一覧へ</a>
               <a class="btn" href="/tools.html">ツールを見る</a>
             </div>
           </div>
-          <div class="hero-panel">
-            <strong>学習サイクル</strong>
-            <p class="muted">理解 → 変換 → 共有 → フィードバック</p>
-            <p class="muted">青とガラスを基調にした静かなUI。</p>
-          </div>
         </section>
 
-        <section class="wrapper">
-          <div class="section-title">ツール・サービスのスライダー</div>
-          <div class="slider glass-card">
-            <div class="slide-track">
-              <div class="slides" id="slides">
-                <div class="slide">
-                  <h3>グラフツール</h3>
-                  <p class="muted">データを即座に可視化し、理解を助ける。</p>
-                </div>
-                <div class="slide">
-                  <h3>匿名掲示板</h3>
-                  <p class="muted">気軽に質問や議論ができるコミュニティ。</p>
-                </div>
-                <div class="slide">
-                  <h3>メディア変換</h3>
-                  <p class="muted">テキスト→音声、画像変換で多感覚学習。</p>
-                </div>
-                <div class="slide">
-                  <h3>科目一覧</h3>
-                  <p class="muted">理解ベースで整理されたシラバス。</p>
-                </div>
-                <div class="slide">
-                  <h3>アプリ開発ガイド</h3>
-                  <p class="muted">開発の基礎をまとめた簡潔なガイド。</p>
-                </div>
-              </div>
-            </div>
-            <div class="slider-controls">
-              <button id="prev-slide">‹</button>
-              <button id="next-slide">›</button>
-            </div>
-            <div class="slider-dots" id="slider-dots"></div>
+<section class="wrapper">
+  <div class="section-heading">
+    <h2 class="section-title">ツール & サービス</h2>
+    <p class="section-subtitle muted">
+      よく使う機能だけを、シンプルなカードとビジュアルでまとめました。
+    </p>
+  </div>
+
+  <div class="slider glass-card">
+    <div class="slide-track">
+      <div class="slides" id="slides">
+        <!-- ① グラフツール（2D/3D 統合） -->
+        <article class="slide" data-link="/tools/tool-graph.html">
+          <div class="slide-text">
+            <p class="slide-eyebrow">可視化・解析</p>
+            <h3 class="slide-title">グラフツール（2D / 3D）</h3>
+            <p class="slide-desc">
+              2D 関数やパラメトリック、3D サーフェスを一つの画面で切り替え。重ね描きや回転で直感的に理解できます。
+            </p>
+            <button class="btn btn-primary slide-cta" type="button">
+              開く
+            </button>
           </div>
-        </section>
+          <div class="slide-visual">
+            <div class="slide-art art-graph3d"></div>
+          </div>
+        </article>
+
+        <!-- ② メモツール -->
+        <article class="slide" data-link="/tools/tool-memo.html">
+          <div class="slide-text">
+            <p class="slide-eyebrow">考えを整理</p>
+            <h3 class="slide-title">メモツール</h3>
+            <p class="slide-desc">
+              アイデアや途中式を、タグとピン留めで整理。
+              シンプルなレイアウトで、勉強の流れを邪魔しません。
+            </p>
+            <button class="btn btn-primary slide-cta" type="button">
+              開く
+            </button>
+          </div>
+          <div class="slide-visual">
+            <div class="slide-art art-memo"></div>
+          </div>
+        </article>
+
+        <!-- ③ 分子ビューア -->
+        <article class="slide" data-link="/tools/tool-molecule.html">
+          <div class="slide-text">
+            <p class="slide-eyebrow">化学・構造</p>
+            <h3 class="slide-title">分子ビューア</h3>
+            <p class="slide-desc">
+              ベンゼンや水などの代表的な分子構造を手軽に確認。シンプルなビューアで入門に最適です。
+            </p>
+            <button class="btn btn-primary slide-cta" type="button">
+              開く
+            </button>
+          </div>
+          <div class="slide-visual">
+            <div class="slide-badge">tool</div>
+            <div class="slide-art art-bbs"></div>
+          </div>
+        </article>
+
+        <!-- ④ 科目一覧 -->
+        <article class="slide" data-link="/subjects.html">
+          <div class="slide-text">
+            <p class="slide-eyebrow">シラバス</p>
+            <h3 class="slide-title">科目選択ページ</h3>
+            <p class="slide-desc">
+              微分積分や線形代数などの科目ページへ一括アクセス。公式・問題・動画・補足資料を科目別に整理しています。
+            </p>
+            <button class="btn btn-primary slide-cta" type="button">
+              開く
+            </button>
+          </div>
+          <div class="slide-visual">
+            <div class="slide-art art-bbs"></div>
+          </div>
+        </article>
+
+        <!-- ⑤ 掲示板 -->
+        <article class="slide" data-link="/bbs.html">
+          <div class="slide-text">
+            <p class="slide-eyebrow">質問・共有</p>
+            <h3 class="slide-title">匿名掲示板</h3>
+            <p class="slide-desc">
+              授業の疑問やちょっとした tips を共有するスペース。
+              大学メール限定のクローズドなコミュニティです。
+            </p>
+            <button class="btn btn-primary slide-cta" type="button">
+              掲示板へ
+            </button>
+          </div>
+          <div class="slide-visual">
+            <div class="slide-art art-bbs"></div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="slider-controls">
+      <button id="prev-slide" type="button" aria-label="前のカード">
+        ‹
+      </button>
+      <button id="next-slide" type="button" aria-label="次のカード">
+        ›
+      </button>
+    </div>
+    <div class="slider-dots" id="slider-dots" aria-label="スライド切り替え"></div>
+  </div>
+</section>
+
 
         <section class="wrapper">
           <div class="section-title">最新のお知らせ</div>
           <div id="latest-news" class="news-grid"></div>
-          <div style="margin-top: var(--space-sm);">
-            <a class="btn" href="/news.html">すべてのお知らせを見る</a>
-          </div>
         </section>
 
-        <section class="wrapper">
-          <div class="section-title">お問い合わせ</div>
-          <p class="muted">学習サポートやサイトについてのご相談はこちら。</p>
-          <a class="btn btn-primary" href="/contact.html">お問い合わせはこちら</a>
         </section>
       </main>
     </div>
