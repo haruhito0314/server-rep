@@ -782,6 +782,8 @@ textarea {
   border-radius: var(--radius-pill);
   background: var(--card-bg);
   border: 1px solid var(--border-soft);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .tabs button {
@@ -792,7 +794,7 @@ textarea {
   color: var(--text-muted);
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
-  min-width: 110px;
+  min-width: 96px;
   text-align: center;
 }
 
