@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const listContainer = document.querySelector("#news-list");
   const tabs = document.querySelectorAll("[data-tab]");
   const searchInput = document.querySelector("#news-search");
+  const searchToggle = document.querySelector("#news-search-toggle");
   let currentCategory = "all";
   let currentKeyword = "";
 
@@ -41,6 +42,18 @@ document.addEventListener("DOMContentLoaded", () => {
       renderList(currentCategory, currentKeyword);
     })
   );
+
+  searchToggle?.addEventListener("click", () => {
+    const bar = searchToggle.closest(".news-search-bar");
+    bar?.classList.toggle("open");
+    if (bar?.classList.contains("open")) {
+      searchInput?.focus();
+    } else {
+      currentKeyword = "";
+      if (searchInput) searchInput.value = "";
+      renderList(currentCategory, currentKeyword);
+    }
+  });
 
   searchInput?.addEventListener("input", (e) => {
     currentKeyword = e.target.value || "";

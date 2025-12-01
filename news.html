@@ -6,18 +6,19 @@
     <title>お知らせ | Mcommon Study</title>
     <link rel="stylesheet" href="/css/style.css" />
   </head>
-  <body>
+  <body class="news-page">
     <div id="site-header"></div>
     <div class="page">
       <main id="main-content" class="wrapper">
         <h1 class="section-title">お知らせ</h1>
+        <div class="news-search-bar" style="margin-top: var(--space-sm);">
+          <button id="news-search-toggle" type="button" aria-label="検索フォームを開く">🔍</button>
+          <input id="news-search" type="search" placeholder="キーワードで検索（タイトル・本文）" />
+        </div>
         <div class="tabs" aria-label="カテゴリ">
           <button data-tab="all">すべて</button>
           <button data-tab="お知らせ">お知らせ</button>
           <button data-tab="解説・学習">解説・学習</button>
-        </div>
-        <div class="search-box" style="margin-top: var(--space-sm);">
-          <input id="news-search" type="search" placeholder="キーワードで検索（タイトル・本文）" />
         </div>
         <div id="news-list" class="news-list" style="margin-top: var(--space-md);"></div>
       </main>
